@@ -82,6 +82,13 @@ fun SignInScreen(
     val colors = zikraOnGreenFieldColors()
     val awaitingCode = otpSentTo != null
     val lockedEmail = otpSentTo ?: email.trim()
+    var latchedPasswordForm by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(passwordFallback, error) {
+        if (passwordFallback || looksLikePasswordFallback(error)) {
+            latchedPasswordForm = true
+        }
+    }
 
     LaunchedEffect(otpSentTo) {
         if (otpSentTo != null) {
@@ -126,7 +133,7 @@ fun SignInScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (passwordFallback) {
+        if (passwordFallback || latchedPasswordForm) {
             PasswordFallbackForm(
                 busy = busy,
                 email = email,
@@ -306,10 +313,14 @@ private fun PasswordFallbackForm(
         }
     }
 
-    val formValid = email.contains("@") &&
-        password.length >= 8 &&
-        (!createAccount || password == confirm)
-    val errorText = localError ?: shownError
+    val formValid = email.contains("@") && password.length >= 8
+    val explanation = shownError?.takeIf { looksLikePasswordFallback(it) }
+        ?: stringResource(R.string.otp_not_live_use_password)
+    val errorText = (localError ?: shownError)?.takeUnless { looksLikePasswordFallback(it) }
+
+    LaunchedEffect(Unit) {
+        runCatching { passwordFocus.requestFocus() }
+    }
 
     Text(
         stringResource(if (createAccount) R.string.create_account else R.string.sign_in),
@@ -318,7 +329,7 @@ private fun PasswordFallbackForm(
     )
     Spacer(Modifier.height(12.dp))
     Text(
-        stringResource(R.string.otp_not_live_use_password),
+        explanation,
         color = Cream.copy(alpha = 0.85f),
         fontSize = 15.sp,
         textAlign = TextAlign.Center,
@@ -461,4 +472,10 @@ private fun PasswordFallbackForm(
     Spacer(Modifier.height(16.dp))
     QuietTextButton(stringResource(R.string.continue_guest), onClick = onGuest)
     QuietTextButton(stringResource(R.string.back), onClick = onBack)
+}
+
+private fun looksLikePasswordFallback(message: String?): Boolean {
+    val msg = message.orEmpty()
+    return msg.contains("Use your password", ignoreCase = true) ||
+        msg.contains("one-time codes", ignoreCase = true)
 }

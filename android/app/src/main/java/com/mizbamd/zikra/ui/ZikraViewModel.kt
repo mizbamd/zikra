@@ -209,13 +209,14 @@ class ZikraViewModel(
     }
 
     fun requestOtp(email: String) = authenticate {
-        when (auth.requestOtp(email)) {
+        when (val outcome = auth.requestOtp(email)) {
             is OtpRequestOutcome.Sent -> {
                 otpSentTo.value = email.trim()
             }
             is OtpRequestOutcome.PasswordFallback -> {
                 otpSentTo.value = null
                 passwordFallback.value = true
+                authError.value = outcome.message
             }
         }
     }
@@ -318,7 +319,13 @@ class ZikraViewModel(
             authBusy.value = true
             authError.value = null
             runCatching { block() }
-                .onFailure { authError.value = it.message }
+                .onFailure { err ->
+                    authError.value = err.message
+                    if (AuthRepository.isOtpUnavailable(err)) {
+                        otpSentTo.value = null
+                        passwordFallback.value = true
+                    }
+                }
             authBusy.value = false
         }
     }

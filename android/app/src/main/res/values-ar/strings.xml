@@ -19,7 +19,7 @@
     <string name="invalid_code">أدخل الرمز المكوّن من 6 أرقام.</string>
     <string name="resend_code">إعادة إرسال الرمز</string>
     <string name="change_email">استخدام بريد آخر</string>
-    <string name="otp_not_live_use_password">رموز الدخول لمرة واحدة غير مفعّلة بعد — استخدم كلمة المرور.</string>
+    <string name="otp_not_live_use_password">رموز الدخول لمرة واحدة غير مفعّلة على الخادم بعد. استخدم كلمة المرور، أو تابع كضيف.</string>
     <string name="password_too_short">يجب أن تكون كلمة المرور 8 أحرف على الأقل.</string>
     <string name="passwords_dont_match">كلمتا المرور غير متطابقتين.</string>
     <string name="signing_in">جارٍ تسجيل الدخول…</string>

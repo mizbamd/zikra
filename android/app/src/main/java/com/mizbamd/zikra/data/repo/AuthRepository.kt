@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.first
 
 sealed class OtpRequestOutcome {
     data object Sent : OtpRequestOutcome()
-    data object PasswordFallback : OtpRequestOutcome()
+    data class PasswordFallback(val message: String) : OtpRequestOutcome()
 }
 
 class AuthRepository(
@@ -19,8 +19,11 @@ class AuthRepository(
         runCatching { api.requestOtp(email.trim()) }
             .onSuccess { return OtpRequestOutcome.Sent }
             .onFailure { err ->
-                if (err is ApiException && err.status == 404) {
-                    return OtpRequestOutcome.PasswordFallback
+                if (err is ApiException && (err.status == 404 || err.status == 503)) {
+                    val wrapped = wrap(err) as ApiException
+                    return OtpRequestOutcome.PasswordFallback(
+                        wrapped.message ?: HUMANIZED_OTP_UNAVAILABLE,
+                    )
                 }
                 throw wrap(err)
             }
@@ -81,10 +84,9 @@ class AuthRepository(
         val blankOrGeneric = msg.isBlank() || msg.startsWith("Request failed")
         return when (e.status) {
             401 -> if (blankOrGeneric) "Invalid email or password." else msg
-            404 -> "One-time codes aren’t live on the server yet. Use your password, or continue as guest."
+            404 -> HUMANIZED_OTP_UNAVAILABLE
             503 -> when {
-                msg.contains("email not configured", ignoreCase = true) ->
-                    "Email one-time codes aren’t configured on the server yet. Use your password, or continue as guest."
+                msg.contains("email not configured", ignoreCase = true) -> HUMANIZED_OTP_UNAVAILABLE
                 blankOrGeneric -> "Zikra is temporarily unavailable. Try again shortly."
                 else -> msg
             }
@@ -95,5 +97,14 @@ class AuthRepository(
     companion object {
         private const val OFFLINE =
             "Can’t reach Zikra online. Turn on Wi‑Fi or mobile data, then try again — or continue as guest."
+        const val HUMANIZED_OTP_UNAVAILABLE =
+            "Email one-time codes aren’t configured on the server yet. Use your password, or continue as guest."
+
+        fun isOtpUnavailable(err: Throwable): Boolean {
+            val msg = err.message.orEmpty()
+            return msg.contains("email not configured", ignoreCase = true) ||
+                msg.contains("Use your password", ignoreCase = true) ||
+                msg.contains("one-time codes", ignoreCase = true)
+        }
     }
 }
