@@ -13,7 +13,6 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,8 +30,9 @@ import com.mizbamd.zikra.data.local.FrameEntity
 import com.mizbamd.zikra.ui.components.GoldButton
 import com.mizbamd.zikra.ui.components.QuietTextButton
 import com.mizbamd.zikra.ui.theme.Cream
-import com.mizbamd.zikra.ui.theme.Gold
-import com.mizbamd.zikra.ui.theme.GoldLight
+import com.mizbamd.zikra.ui.theme.OnGreen
+import com.mizbamd.zikra.ui.theme.OnGreenTextStyle
+import com.mizbamd.zikra.ui.theme.zikraOnGreenFieldColors
 
 @Composable
 fun EditFrameScreen(
@@ -51,15 +51,7 @@ fun EditFrameScreen(
         target = existing?.target?.toString().orEmpty()
     }
 
-    val colors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = Gold,
-        unfocusedBorderColor = Cream.copy(alpha = 0.4f),
-        focusedTextColor = Cream,
-        unfocusedTextColor = Cream,
-        focusedLabelColor = GoldLight,
-        unfocusedLabelColor = Cream.copy(alpha = 0.7f),
-        cursorColor = Gold,
-    )
+    val colors = zikraOnGreenFieldColors()
 
     Column(Modifier.fillMaxSize().padding(20.dp)) {
         IconButton(onClick = onBack) {
@@ -74,27 +66,30 @@ fun EditFrameScreen(
         OutlinedTextField(
             value = arabic,
             onValueChange = { arabic = it },
-            label = { Text(stringResource(R.string.arabic)) },
+            label = { Text(stringResource(R.string.arabic), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
+            textStyle = OnGreenTextStyle,
             colors = colors,
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = transliteration,
             onValueChange = { transliteration = it },
-            label = { Text(stringResource(R.string.transliteration)) },
+            label = { Text(stringResource(R.string.transliteration), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
+            textStyle = OnGreenTextStyle,
             colors = colors,
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = target,
             onValueChange = { target = it.filter { ch -> ch.isDigit() } },
-            label = { Text(stringResource(R.string.target_optional)) },
+            label = { Text(stringResource(R.string.target_optional), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
+            textStyle = OnGreenTextStyle,
             colors = colors,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )

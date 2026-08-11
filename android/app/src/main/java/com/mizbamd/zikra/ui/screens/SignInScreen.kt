@@ -22,7 +22,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,9 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,6 +50,9 @@ import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.Forest
 import com.mizbamd.zikra.ui.theme.Gold
 import com.mizbamd.zikra.ui.theme.GoldLight
+import com.mizbamd.zikra.ui.theme.OnGreen
+import com.mizbamd.zikra.ui.theme.OnGreenTextStyle
+import com.mizbamd.zikra.ui.theme.zikraOnGreenFieldColors
 
 @Composable
 fun SignInScreen(
@@ -86,21 +86,7 @@ fun SignInScreen(
         containerColor = Cream.copy(alpha = 0.12f),
         labelColor = Cream,
     )
-    val fieldText = TextStyle(color = Color.White, fontSize = 16.sp)
-    val colors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = Color.White,
-        unfocusedTextColor = Color.White,
-        disabledTextColor = Color.White.copy(alpha = 0.6f),
-        cursorColor = Gold,
-        focusedBorderColor = Gold,
-        unfocusedBorderColor = Cream.copy(alpha = 0.4f),
-        focusedLabelColor = GoldLight,
-        unfocusedLabelColor = Cream.copy(alpha = 0.7f),
-        focusedContainerColor = Color.Transparent,
-        unfocusedContainerColor = Color.Transparent,
-        focusedTrailingIconColor = GoldLight,
-        unfocusedTrailingIconColor = Cream.copy(alpha = 0.7f),
-    )
+    val colors = zikraOnGreenFieldColors()
 
     fun clearErrors() {
         localError = null
@@ -165,11 +151,11 @@ fun SignInScreen(
                 email = it
                 clearErrors()
             },
-            label = { Text(stringResource(R.string.email)) },
+            label = { Text(stringResource(R.string.email), color = OnGreen) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
-            textStyle = fieldText,
+            textStyle = OnGreenTextStyle,
             colors = colors,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
@@ -185,14 +171,14 @@ fun SignInScreen(
                 password = it
                 clearErrors()
             },
-            label = { Text(stringResource(R.string.password)) },
+            label = { Text(stringResource(R.string.password), color = OnGreen) },
             singleLine = true,
             visualTransformation = transformation,
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(passwordFocus),
             shape = RoundedCornerShape(14.dp),
-            textStyle = fieldText,
+            textStyle = OnGreenTextStyle,
             colors = colors,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
@@ -226,14 +212,14 @@ fun SignInScreen(
                     confirm = it
                     clearErrors()
                 },
-                label = { Text(stringResource(R.string.confirm_password)) },
+                label = { Text(stringResource(R.string.confirm_password), color = OnGreen) },
                 singleLine = true,
                 visualTransformation = transformation,
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(confirmFocus),
                 shape = RoundedCornerShape(14.dp),
-                textStyle = fieldText,
+                textStyle = OnGreenTextStyle,
                 colors = colors,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
