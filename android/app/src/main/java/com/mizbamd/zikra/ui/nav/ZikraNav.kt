@@ -1,6 +1,7 @@
 package com.mizbamd.zikra.ui.nav
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
@@ -166,20 +167,22 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
             )
         }
         composable("home") {
-            HomeScreen(
-                dates = vm.displayDates(),
-                frames = state.frames,
-                doneFrameId = state.doneFrameId,
-                canAddFrame = state.canAddFrame,
-                maxFrames = state.maxFrames,
-                onCount = vm::increment,
-                onFocus = { nav.navigate("focused/$it") },
-                onAdd = {
-                    if (state.canAddFrame) nav.navigate("edit/new")
-                },
-                onClearDone = vm::clearDone,
-                bottomBar = { Bottom("home") },
-            )
+            Box(Modifier.fillMaxSize()) {
+                HomeScreen(
+                    dates = vm.displayDates(),
+                    frames = state.frames,
+                    doneFrameId = state.doneFrameId,
+                    canAddFrame = state.canAddFrame,
+                    maxFrames = state.maxFrames,
+                    onCount = vm::increment,
+                    onFocus = { nav.navigate("focused/$it") },
+                    onAdd = {
+                        if (state.canAddFrame) nav.navigate("edit/new")
+                    },
+                    onClearDone = vm::clearDone,
+                    bottomBar = { Bottom("home") },
+                )
+            }
         }
         composable("history") {
             HistoryScreen(
