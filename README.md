@@ -61,8 +61,10 @@ Flyway runs on startup.
 | `ZIKRA_ENV` | unset locally; `production` rejects the local JWT default |
 | `CORS_ORIGINS` | optional allow-list; empty = any origin |
 | `GOOGLE_WEB_CLIENT_ID` | unset — Google Sign-In is a stub in v1 (button stays hidden) |
+| `RESEND_API_KEY` | unset locally — OTP codes log at DEBUG; **required** in production with `OTP_FROM_EMAIL` |
+| `OTP_FROM_EMAIL` | From address for Resend (any inbox, not Gmail-only) |
 
-Auth: `POST /v1/auth/register` and `POST /v1/auth/login` with `{ "email", "password" }` (password 8+ chars). Sync: `GET/POST /v1/sync` with `Authorization: Bearer <jwt>`. Account deletion: `DELETE /v1/account` (or `POST /v1/account/delete`) with the same Bearer token — used by **You → Delete account**. JWTs expire after 14 days; production is HTTPS only (Fly or Caddy).
+Auth: `POST /v1/auth/otp/request` `{ "email" }` then `POST /v1/auth/otp/verify` `{ "email", "code" }` → JWT. Legacy `POST /v1/auth/register` and `POST /v1/auth/login` with `{ "email", "password" }` still work for older accounts. Sync: `GET/POST /v1/sync` with `Authorization: Bearer <jwt>`. Account deletion: `DELETE /v1/account` (or `POST /v1/account/delete`) with the same Bearer token — used by **You → Delete account**. JWTs expire after 14 days; production is HTTPS only (Fly or Caddy). Rate limits and Resend setup: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Run the Android app
 

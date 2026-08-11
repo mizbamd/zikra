@@ -10,20 +10,13 @@ class AuthRepository(
     private val settings: SettingsStore,
     private val frames: FrameRepository,
 ) {
-    suspend fun register(email: String, password: String) {
-        val trimmed = email.trim()
-        val res = runCatching { api.register(trimmed, password) }.getOrElse { err ->
-            if (err is ApiException && err.message?.contains("already exists", ignoreCase = true) == true) {
-                return login(trimmed, password)
-            }
-            throw wrap(err)
-        }
-        settings.signIn(res.userId, res.email, res.token)
-        frames.onSignedIn(res.userId)
+    suspend fun requestOtp(email: String) {
+        runCatching { api.requestOtp(email.trim()) }
+            .getOrElse { throw wrap(it) }
     }
 
-    suspend fun login(email: String, password: String) {
-        val res = runCatching { api.login(email.trim(), password) }
+    suspend fun verifyOtp(email: String, code: String) {
+        val res = runCatching { api.verifyOtp(email.trim(), code.trim()) }
             .getOrElse { throw wrap(it) }
         settings.signIn(res.userId, res.email, res.token)
         frames.onSignedIn(res.userId)

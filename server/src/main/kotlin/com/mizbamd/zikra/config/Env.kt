@@ -21,7 +21,12 @@ data class Env(
     val googleWebClientId: String?,
     val corsOrigins: List<String>,
     val production: Boolean,
+    val resendApiKey: String?,
+    val otpFromEmail: String?,
 ) {
+    val emailConfigured: Boolean
+        get() = !resendApiKey.isNullOrBlank() && !otpFromEmail.isNullOrBlank()
+
     companion object {
         const val LOCAL_JWT_DEFAULT = "zikra-local-dev-change-me-please-32chars"
         const val MIN_PROD_JWT_LENGTH = 32
@@ -71,6 +76,8 @@ data class Env(
                 googleWebClientId = v("GOOGLE_WEB_CLIENT_ID", "").ifBlank { null },
                 corsOrigins = corsOrigins,
                 production = production,
+                resendApiKey = v("RESEND_API_KEY", "").ifBlank { null },
+                otpFromEmail = v("OTP_FROM_EMAIL", "").ifBlank { null },
             )
         }
 

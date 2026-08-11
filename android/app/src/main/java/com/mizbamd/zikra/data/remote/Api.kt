@@ -28,7 +28,10 @@ data class AuthResponse(val token: String, val userId: String, val email: String
 data class ErrorBody(val error: String? = null)
 
 @Serializable
-data class Credentials(val email: String, val password: String)
+data class OtpRequestBody(val email: String)
+
+@Serializable
+data class OtpVerifyBody(val email: String, val code: String)
 
 @Serializable
 data class FrameDto(
@@ -86,11 +89,19 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
         client.get("$baseUrl/health").status.value == 200
     }.getOrDefault(false)
 
-    suspend fun register(email: String, password: String): AuthResponse =
-        authPost("/v1/auth/register", Credentials(email, password))
+    suspend fun requestOtp(email: String) {
+        val res = client.post("$baseUrl/v1/auth/otp/request") {
+            setBody(OtpRequestBody(email))
+        }
+        if (res.status.value !in 200..299) throw ApiException(errorMessage(res))
+    }
 
-    suspend fun login(email: String, password: String): AuthResponse =
-        authPost("/v1/auth/login", Credentials(email, password))
+    suspend fun verifyOtp(email: String, code: String): AuthResponse {
+        val res = client.post("$baseUrl/v1/auth/otp/verify") {
+            setBody(OtpVerifyBody(email, code))
+        }
+        return parseOrThrow(res)
+    }
 
     suspend fun pull(token: String): SyncPullResponse {
         val res = client.get("$baseUrl/v1/sync") {
@@ -113,11 +124,6 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
         }
         if (res.status.value in 200..299 || res.status.value == 404) return
         throw ApiException(errorMessage(res))
-    }
-
-    private suspend fun authPost(path: String, body: Credentials): AuthResponse {
-        val res = client.post("$baseUrl$path") { setBody(body) }
-        return parseOrThrow(res)
     }
 
     private suspend inline fun <reified T> parseOrThrow(res: HttpResponse): T {

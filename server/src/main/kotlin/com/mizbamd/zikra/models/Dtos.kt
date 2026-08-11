@@ -23,6 +23,18 @@ data class GoogleSignInRequest(
 )
 
 @Serializable
+data class OtpRequest(val email: String)
+
+@Serializable
+data class OtpVerifyRequest(val email: String, val code: String)
+
+@Serializable
+data class OtpRequestResponse(
+    val ok: Boolean = true,
+    val expiresInSeconds: Int = 600,
+)
+
+@Serializable
 data class AuthResponse(
     val token: String,
     val userId: String,

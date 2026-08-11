@@ -2,7 +2,7 @@
 
 Stack stays small: **Ktor + Postgres 14**. No Redis, Kafka, or Firebase.
 
-The Android app is offline-first. The API is only for signed-in register / login / sync / **account deletion**.
+The Android app is offline-first. The API is for signed-in **email OTP** (legacy email+password still accepted), sync, and **account deletion**.
 
 Production **must be HTTPS**. Terminate TLS at Fly or Caddy; Ktor listens on HTTP inside the private network (`HOST=0.0.0.0`).
 
@@ -21,8 +21,26 @@ Copy [server/.env.example](../server/.env.example). In production:
 | `PORT` | `8080` (Fly and Compose map this) |
 | `HOST` | `0.0.0.0` (already the default; required so the process is reachable in a container) |
 | `CORS_ORIGINS` | Optional comma-separated origins. Empty = allow any (fine for a mobile API) |
+| `RESEND_API_KEY` | Resend API key. Required in production together with `OTP_FROM_EMAIL` |
+| `OTP_FROM_EMAIL` | From address, e.g. `Zikra <noreply@your-verified-domain>`. Verify the domain in Resend |
 
 JWT lifetime is **14 days** (`Security.TOKEN_TTL_SECONDS`). Logout is local; account **deletion** removes the user so leftover tokens cannot load data. Use HTTPS so tokens are not sent in the clear.
+
+Sign-in for the app is **email OTP** (`POST /v1/auth/otp/request` then `POST /v1/auth/otp/verify`). Legacy `POST /v1/auth/login` (email+password) still works for older accounts. OTP-only users have no password. Codes are 6 digits, 10 minutes, hashed at rest (HMAC-SHA256 with `JWT_SECRET`), max 5 attempts, one active code per email.
+
+If `ZIKRA_ENV=production` and Resend is not configured, OTP request returns **503** `email not configured`. Codes are never printed in production logs. Locally, with no mailer, the code is logged at DEBUG only.
+
+### Rate limits (in-memory, single Fly machine)
+
+| Endpoint | Limit |
+|---|---|
+| `POST /v1/auth/otp/request` | 1 / min per email, 5 / hour per IP |
+| `POST /v1/auth/otp/verify` | 10 / 15 min per IP |
+| `POST /v1/auth/register`, `POST /v1/auth/login` | 5 / 15 min per IP |
+| `POST /v1/sync` | 30 / min per IP |
+| `DELETE /v1/account`, `POST /v1/account/delete` | 5 / hour per IP |
+
+Over limit: **429** with `Retry-After` (seconds). No Redis.
 
 Do not commit `.env`, keystores, or Play secrets.
 
@@ -76,8 +94,12 @@ fly postgres create --name zikra-db --initial-cluster-size 1 --vm-size shared-cp
 fly postgres attach zikra-db -a zikra-api
 
 fly secrets set ZIKRA_ENV=production JWT_SECRET="$(openssl rand -base64 48)"
+# Email OTP (do this before relying on production sign-in):
+fly secrets set RESEND_API_KEY="re_xxxxxxxx" OTP_FROM_EMAIL="Zikra <noreply@your-verified-domain>"
 # attach already sets DATABASE_URL (postgres://…). Env.parseDatabaseUrl accepts it.
-# Never commit JWT_SECRET, DATABASE_URL, or .env.
+# Never commit JWT_SECRET, DATABASE_URL, RESEND_API_KEY, or .env.
+
+Without `RESEND_API_KEY` and `OTP_FROM_EMAIL`, production OTP returns 503 and does not leak codes.
 
 fly deploy
 ```

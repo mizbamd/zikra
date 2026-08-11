@@ -10,6 +10,14 @@
     <string name="password">كلمة المرور</string>
     <string name="confirm_password">تأكيد كلمة المرور</string>
     <string name="invalid_email">أدخل بريداً إلكترونياً صالحاً.</string>
+    <string name="send_code">إرسال الرمز</string>
+    <string name="sending_code">جارٍ إرسال الرمز…</string>
+    <string name="enter_code">رمز من 6 أرقام</string>
+    <string name="code_sent">أرسلنا رمزاً من 6 أرقام إلى %1$s.</string>
+    <string name="continue_with_code">متابعة</string>
+    <string name="invalid_code">أدخل الرمز المكوّن من 6 أرقام.</string>
+    <string name="resend_code">إعادة إرسال الرمز</string>
+    <string name="change_email">استخدام بريد آخر</string>
     <string name="password_too_short">يجب أن تكون كلمة المرور 8 أحرف على الأقل.</string>
     <string name="passwords_dont_match">كلمتا المرور غير متطابقتين.</string>
     <string name="signing_in">جارٍ تسجيل الدخول…</string>

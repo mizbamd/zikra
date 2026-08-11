@@ -41,6 +41,7 @@ data class UiState(
     val history: List<DailyCountEntity> = emptyList(),
     val authError: String? = null,
     val authBusy: Boolean = false,
+    val otpSentTo: String? = null,
     val doneFrameId: String? = null,
     val maxFrames: Int = FrameLimitPolicy.DEFAULT_MAX_FRAMES,
     val canAddFrame: Boolean = true,
@@ -57,6 +58,7 @@ class ZikraViewModel(
 
     private val authError = MutableStateFlow<String?>(null)
     private val authBusy = MutableStateFlow(false)
+    private val otpSentTo = MutableStateFlow<String?>(null)
     private val doneFrameId = MutableStateFlow<String?>(null)
 
     private val todayFrames = settingsStore.settings.flatMapLatest { s ->
@@ -73,8 +75,15 @@ class ZikraViewModel(
             SessionMode.WELCOME -> flowOf(emptyList())
         }
     }
-    private val authBits = combine(authError, authBusy, doneFrameId) { err, busy, done ->
-        Triple(err, busy, done)
+    private data class AuthBits(
+        val error: String?,
+        val busy: Boolean,
+        val doneFrameId: String?,
+        val otpSentTo: String?,
+    )
+
+    private val authBits = combine(authError, authBusy, doneFrameId, otpSentTo) { err, busy, done, otp ->
+        AuthBits(err, busy, done, otp)
     }
 
     val state: StateFlow<UiState> = combine(
@@ -82,7 +91,7 @@ class ZikraViewModel(
         todayFrames,
         historyFlow,
         authBits,
-    ) { settings: Settings, today: List<FrameToday>, history: List<DailyCountEntity>, bits: Triple<String?, Boolean, String?> ->
+    ) { settings: Settings, today: List<FrameToday>, history: List<DailyCountEntity>, bits: AuthBits ->
         val signedIn = settings.mode == SessionMode.SIGNED_IN
         val maxFrames = FrameLimitPolicy.maxFramesFor(signedIn)
         val todayKey = ZikraTime.todayKey(
@@ -94,9 +103,10 @@ class ZikraViewModel(
             settings = settings,
             frames = today,
             history = history,
-            authError = bits.first,
-            authBusy = bits.second,
-            doneFrameId = bits.third,
+            authError = bits.error,
+            authBusy = bits.busy,
+            otpSentTo = bits.otpSentTo,
+            doneFrameId = bits.doneFrameId,
             maxFrames = maxFrames,
             canAddFrame = FrameLimitPolicy.canAdd(today.size, signedIn),
             streakDays = settings.streakToShow(
@@ -182,15 +192,26 @@ class ZikraViewModel(
     }
 
     fun continueGuest() {
-        viewModelScope.launch { auth.continueGuest() }
+        viewModelScope.launch {
+            otpSentTo.value = null
+            authError.value = null
+            auth.continueGuest()
+        }
     }
 
-    fun register(email: String, password: String) = authenticate {
-        auth.register(email, password)
+    fun requestOtp(email: String) = authenticate {
+        auth.requestOtp(email)
+        otpSentTo.value = email.trim()
     }
 
-    fun login(email: String, password: String) = authenticate {
-        auth.login(email, password)
+    fun verifyOtp(email: String, code: String) = authenticate {
+        auth.verifyOtp(email, code)
+        otpSentTo.value = null
+    }
+
+    fun clearOtpSent() {
+        otpSentTo.value = null
+        authError.value = null
     }
 
     fun signOut() {
