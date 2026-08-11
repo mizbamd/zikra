@@ -47,6 +47,12 @@ dependencies {
 
     implementation("at.favre.lib:bcrypt:0.10.2")
     implementation("com.auth0:java-jwt:4.4.0")
+
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.named<JavaExec>("run") {

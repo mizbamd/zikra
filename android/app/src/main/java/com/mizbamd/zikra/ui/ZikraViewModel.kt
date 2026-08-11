@@ -151,6 +151,10 @@ class ZikraViewModel(
         viewModelScope.launch { auth.signOut() }
     }
 
+    fun deleteAccount() = authenticate {
+        auth.deleteAccount()
+    }
+
     fun saveFrame(id: String?, arabic: String, transliteration: String, target: Int?) {
         viewModelScope.launch {
             frames.saveFrame(state.value.settings.userId, id, arabic, transliteration, target)

@@ -30,6 +30,12 @@ data class AuthResponse(
 )
 
 @Serializable
+data class AccountDeletedResponse(
+    val ok: Boolean = true,
+    val message: String = "Account and associated data have been deleted.",
+)
+
+@Serializable
 data class FrameDto(
     val id: String,
     val arabic: String,

@@ -33,6 +33,7 @@ class Security(secret: String) {
 
     companion object {
         const val ISSUER = "zikra"
+        /** 14 days. Production must use HTTPS; rotating JWT_SECRET invalidates all tokens. */
         const val TOKEN_TTL_SECONDS = 60L * 60 * 24 * 14
     }
 }

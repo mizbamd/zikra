@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -25,10 +26,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -95,16 +102,20 @@ fun LocationPermissionEffect(
 @Composable
 fun YouScreen(
     settings: Settings,
+    authBusy: Boolean = false,
+    authError: String? = null,
     onHaptics: (Boolean) -> Unit,
     onVolumeUp: (Boolean) -> Unit,
     onResetAt: (ResetAt) -> Unit,
     onLanguage: (String) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
     onSignOut: () -> Unit,
+    onDeleteAccount: () -> Unit = {},
     onSignIn: () -> Unit,
     onBack: (() -> Unit)? = null,
     bottomBar: @Composable () -> Unit,
 ) {
+    var confirmDelete by remember { mutableStateOf(false) }
     val chipColors = FilterChipDefaults.filterChipColors(
         selectedContainerColor = Gold,
         selectedLabelColor = Forest,
@@ -187,10 +198,45 @@ fun YouScreen(
             Spacer(Modifier.height(24.dp))
             if (settings.mode == SessionMode.SIGNED_IN) {
                 QuietTextButton(stringResource(R.string.sign_out), onClick = onSignOut)
+                QuietTextButton(
+                    stringResource(R.string.delete_account),
+                    onClick = { confirmDelete = true },
+                )
             } else {
                 QuietTextButton(stringResource(R.string.sign_in), onClick = onSignIn)
             }
         }
+    }
+
+    if (confirmDelete && settings.mode == SessionMode.SIGNED_IN) {
+        AlertDialog(
+            onDismissRequest = { if (!authBusy) confirmDelete = false },
+            title = { Text(stringResource(R.string.delete_account_confirm_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.delete_account_confirm_body))
+                    if (!authError.isNullOrBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(authError, color = GoldLight, fontSize = 14.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onDeleteAccount, enabled = !authBusy) {
+                    Text(
+                        stringResource(
+                            if (authBusy) R.string.deleting_account else R.string.delete_account_confirm,
+                        ),
+                        color = Color(0xFFB54A4A),
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }, enabled = !authBusy) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 }
 
