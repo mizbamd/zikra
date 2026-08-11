@@ -13,6 +13,7 @@ import com.mizbamd.zikra.data.local.SessionMode
 import com.mizbamd.zikra.data.local.Settings
 import com.mizbamd.zikra.data.local.SettingsStore
 import com.mizbamd.zikra.data.repo.AuthRepository
+import com.mizbamd.zikra.data.repo.OtpRequestOutcome
 import com.mizbamd.zikra.data.repo.FrameRepository
 import com.mizbamd.zikra.data.repo.FrameToday
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
@@ -43,6 +44,7 @@ data class UiState(
     val authError: String? = null,
     val authBusy: Boolean = false,
     val otpSentTo: String? = null,
+    val passwordFallback: Boolean = false,
     val doneFrameId: String? = null,
     val maxFrames: Int = FrameLimitPolicy.DEFAULT_MAX_FRAMES,
     val canAddFrame: Boolean = true,
@@ -61,6 +63,7 @@ class ZikraViewModel(
     private val authError = MutableStateFlow<String?>(null)
     private val authBusy = MutableStateFlow(false)
     private val otpSentTo = MutableStateFlow<String?>(null)
+    private val passwordFallback = MutableStateFlow(false)
     private val doneFrameId = MutableStateFlow<String?>(null)
 
     private val todayFrames = settingsStore.settings.flatMapLatest { s ->
@@ -82,10 +85,11 @@ class ZikraViewModel(
         val busy: Boolean,
         val doneFrameId: String?,
         val otpSentTo: String?,
+        val passwordFallback: Boolean,
     )
 
-    private val authBits = combine(authError, authBusy, doneFrameId, otpSentTo) { err, busy, done, otp ->
-        AuthBits(err, busy, done, otp)
+    private val authBits = combine(authError, authBusy, doneFrameId, otpSentTo, passwordFallback) { err, busy, done, otp, fallback ->
+        AuthBits(err, busy, done, otp, fallback)
     }
 
     val state: StateFlow<UiState> = combine(
@@ -108,6 +112,7 @@ class ZikraViewModel(
             authError = bits.error,
             authBusy = bits.busy,
             otpSentTo = bits.otpSentTo,
+            passwordFallback = bits.passwordFallback,
             doneFrameId = bits.doneFrameId,
             maxFrames = maxFrames,
             canAddFrame = FrameLimitPolicy.canAdd(today.size, signedIn),
@@ -197,14 +202,22 @@ class ZikraViewModel(
     fun continueGuest() {
         viewModelScope.launch {
             otpSentTo.value = null
+            passwordFallback.value = false
             authError.value = null
             auth.continueGuest()
         }
     }
 
     fun requestOtp(email: String) = authenticate {
-        auth.requestOtp(email)
-        otpSentTo.value = email.trim()
+        when (auth.requestOtp(email)) {
+            is OtpRequestOutcome.Sent -> {
+                otpSentTo.value = email.trim()
+            }
+            is OtpRequestOutcome.PasswordFallback -> {
+                otpSentTo.value = null
+                passwordFallback.value = true
+            }
+        }
     }
 
     fun verifyOtp(email: String, code: String) = authenticate {
@@ -212,8 +225,22 @@ class ZikraViewModel(
         otpSentTo.value = null
     }
 
+    fun login(email: String, password: String) = authenticate {
+        auth.login(email, password)
+    }
+
+    fun register(email: String, password: String) = authenticate {
+        auth.register(email, password)
+    }
+
     fun clearOtpSent() {
         otpSentTo.value = null
+        authError.value = null
+    }
+
+    fun clearSignInDraft() {
+        otpSentTo.value = null
+        passwordFallback.value = false
         authError.value = null
     }
 

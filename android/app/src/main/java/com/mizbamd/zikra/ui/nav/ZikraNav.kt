@@ -163,9 +163,12 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 busy = state.authBusy,
                 error = state.authError,
                 otpSentTo = state.otpSentTo,
+                passwordFallback = state.passwordFallback,
                 onRequestOtp = vm::requestOtp,
                 onVerifyOtp = vm::verifyOtp,
                 onClearOtpSent = vm::clearOtpSent,
+                onLogin = vm::login,
+                onRegister = vm::register,
                 onGoogle = {
                     Toast.makeText(
                         context,
@@ -175,7 +178,7 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 },
                 onClearError = vm::clearAuthError,
                 onBack = {
-                    vm.clearOtpSent()
+                    vm.clearSignInDraft()
                     nav.popBackStack()
                 },
                 onGuest = vm::continueGuest,
