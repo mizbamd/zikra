@@ -36,8 +36,8 @@ import com.mizbamd.zikra.ui.ZikraViewModel
 import com.mizbamd.zikra.ui.screens.EditFrameScreen
 import com.mizbamd.zikra.ui.screens.FocusedScreen
 import com.mizbamd.zikra.ui.screens.GuestScreen
-import com.mizbamd.zikra.ui.screens.HistoryScreen
 import com.mizbamd.zikra.ui.screens.HomeScreen
+import com.mizbamd.zikra.ui.screens.SummaryScreen
 import com.mizbamd.zikra.ui.screens.LocationPermissionEffect
 import com.mizbamd.zikra.ui.screens.SignInScreen
 import com.mizbamd.zikra.ui.screens.WelcomeScreen
@@ -81,8 +81,8 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 }
             }
             SessionMode.SIGNED_IN -> {
-                val inApp = current == "home" || current == "history" || current == "you" ||
-                    current == "signin" || current.isFocusedOrEdit()
+                val inApp = current == "home" || current == "summary" || current == "history" ||
+                    current == "you" || current == "signin" || current.isFocusedOrEdit()
                 if (!inApp) {
                     nav.navigate("home") {
                         popUpTo(nav.graph.id) { inclusive = true }
@@ -125,10 +125,15 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 colors = barColors,
             )
             NavigationBarItem(
-                selected = selected == "history",
-                onClick = { nav.navigate("history") { launchSingleTop = true } },
-                icon = { Icon(painterResource(R.drawable.ic_history), contentDescription = null) },
-                label = { Text(stringResource(R.string.history)) },
+                selected = selected == "summary",
+                onClick = { nav.navigate("summary") { launchSingleTop = true } },
+                icon = {
+                    Icon(
+                        painterResource(R.drawable.ic_summary),
+                        contentDescription = stringResource(R.string.summary),
+                    )
+                },
+                label = { Text(stringResource(R.string.summary)) },
                 colors = barColors,
             )
             NavigationBarItem(
@@ -206,11 +211,11 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 )
             }
         }
-        composable("history") {
-            HistoryScreen(
+        composable("summary") {
+            SummaryScreen(
                 frames = state.frames,
-                history = state.history,
-                bottomBar = { Bottom("history") },
+                onFocus = { nav.navigate("focused/$it") },
+                bottomBar = { Bottom("summary") },
             )
         }
         composable("you") {
@@ -310,10 +315,8 @@ private fun NavHostController.goToSessionRoot(mode: SessionMode) {
         SessionMode.SIGNED_IN -> "home"
         SessionMode.WELCOME -> "welcome"
     }
-    if (!popBackStack(root, inclusive = false)) {
-        navigate(root) {
-            launchSingleTop = true
-            popUpTo(graph.id) { inclusive = true }
-        }
+    navigate(root) {
+        popUpTo(root) { inclusive = false }
+        launchSingleTop = true
     }
 }
