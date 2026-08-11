@@ -8,6 +8,15 @@
     <string name="create_account">إنشاء حساب</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="password">كلمة المرور</string>
+    <string name="confirm_password">تأكيد كلمة المرور</string>
+    <string name="invalid_email">أدخل بريداً إلكترونياً صالحاً.</string>
+    <string name="password_too_short">يجب أن تكون كلمة المرور 8 أحرف على الأقل.</string>
+    <string name="passwords_dont_match">كلمتا المرور غير متطابقتين.</string>
+    <string name="signing_in">جارٍ تسجيل الدخول…</string>
+    <string name="creating_account">جارٍ إنشاء الحساب…</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
+    <string name="back">رجوع</string>
     <string name="google_sign_in">المتابعة عبر Google</string>
     <string name="home">الرئيسية</string>
     <string name="history">السجل</string>

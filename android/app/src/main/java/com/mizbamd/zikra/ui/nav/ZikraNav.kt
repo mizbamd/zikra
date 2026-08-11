@@ -26,7 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.mizbamd.zikra.BuildConfig
 import com.mizbamd.zikra.R
 import com.mizbamd.zikra.data.local.FrameEntity
 import com.mizbamd.zikra.data.local.SessionMode
@@ -133,13 +132,13 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 onLogin = vm::login,
                 onRegister = vm::register,
                 onGoogle = {
-                    val msg = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isBlank()) {
-                        context.getString(R.string.google_missing)
-                    } else {
-                        "Google Sign-In token verification is not implemented in v1 yet."
-                    }
-                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "Google Sign-In token verification is not implemented in v1 yet.",
+                        Toast.LENGTH_LONG,
+                    ).show()
                 },
+                onClearError = vm::clearAuthError,
                 onBack = { nav.popBackStack() },
                 onGuest = vm::continueGuest,
             )

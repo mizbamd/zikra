@@ -8,6 +8,15 @@
     <string name="create_account">Create account</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="invalid_email">Enter a valid email address.</string>
+    <string name="password_too_short">Password must be at least 8 characters.</string>
+    <string name="passwords_dont_match">Passwords don’t match.</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="creating_account">Creating account…</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="back">Back</string>
     <string name="google_sign_in">Continue with Google</string>
     <string name="home">Home</string>
     <string name="history">History</string>
