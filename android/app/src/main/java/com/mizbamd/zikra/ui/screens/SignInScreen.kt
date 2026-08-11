@@ -83,6 +83,7 @@ fun SignInScreen(
 
     fun sendCode() {
         keyboard?.hide()
+        clearErrors()
         if (!email.contains("@")) {
             localError = invalidEmail
             return
@@ -168,7 +169,7 @@ fun SignInScreen(
         }
         if (!shownError.isNullOrBlank()) {
             Spacer(Modifier.height(12.dp))
-            Text(shownError, color = GoldLight, fontSize = 14.sp)
+            Text(shownError, color = Cream, fontSize = 16.sp)
         }
         Spacer(Modifier.height(24.dp))
         GoldButton(
