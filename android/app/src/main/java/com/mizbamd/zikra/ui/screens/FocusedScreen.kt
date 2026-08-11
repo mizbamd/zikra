@@ -2,8 +2,6 @@ package com.mizbamd.zikra.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,10 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Edit
@@ -31,22 +25,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
 import com.mizbamd.zikra.data.repo.FrameToday
 import com.mizbamd.zikra.ui.VolumeUpFocusEffect
 import com.mizbamd.zikra.ui.components.CounterActions
+import com.mizbamd.zikra.ui.components.DhikrCountSurface
 import com.mizbamd.zikra.ui.components.QuietTextButton
 import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.ForestDark
-import com.mizbamd.zikra.ui.theme.ForestMid
 import com.mizbamd.zikra.ui.theme.Gold
-import com.mizbamd.zikra.ui.theme.GoldLight
 import kotlinx.coroutines.delay
 
 @Composable
@@ -76,6 +65,7 @@ fun FocusedScreen(
             .fillMaxSize()
             .background(ForestDark)
             .padding(horizontal = 20.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -90,63 +80,33 @@ fun FocusedScreen(
             }
         }
         if (frame != null) {
-            Column(
+            DhikrCountSurface(
+                arabic = frame.frame.arabic,
+                transliteration = frame.frame.transliteration,
+                todayCount = frame.todayCount,
+                target = frame.target,
+                showDone = showDone,
+                onCount = onCount,
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    frame.frame.arabic,
-                    color = Cream,
-                    fontSize = 48.sp,
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(frame.frame.transliteration, color = Cream.copy(alpha = 0.7f), fontSize = 18.sp)
-                Spacer(Modifier.height(36.dp))
-                Box(
-                    modifier = Modifier
-                        .size(280.dp)
-                        .clip(CircleShape)
-                        .background(ForestMid)
-                        .clickable(onClick = onCount),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            frame.todayCount.toString(),
-                            color = Gold,
-                            fontSize = 80.sp,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        frame.target?.let { Text("/ $it", color = GoldLight, fontSize = 22.sp) }
-                    }
-                }
-                if (showDone) {
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.done_quiet), color = GoldLight, fontSize = 20.sp)
-                }
-                Spacer(Modifier.height(20.dp))
-                Text(
-                    "${stringResource(R.string.lifetime)} ${frame.frame.lifetimeCount}",
-                    color = Cream.copy(alpha = 0.55f),
-                )
-                Spacer(Modifier.height(12.dp))
-                CounterActions(
-                    onUndo = onUndo,
-                    onReset = onReset,
-                    undoEnabled = frame.todayCount > 0,
-                    resetEnabled = frame.todayCount > 0,
-                )
-                QuietTextButton(
-                    stringResource(R.string.reset_lifetime),
-                    enabled = frame.frame.lifetimeCount > 0 || frame.todayCount > 0,
-                ) { confirmLifetime = true }
-                Spacer(Modifier.height(24.dp))
-            }
+                    .fillMaxWidth(),
+            )
+            Text(
+                "${stringResource(R.string.lifetime)} ${frame.frame.lifetimeCount}",
+                color = Cream.copy(alpha = 0.4f),
+            )
+            Spacer(Modifier.height(12.dp))
+            CounterActions(
+                onUndo = onUndo,
+                onReset = onReset,
+                undoEnabled = frame.todayCount > 0,
+                resetEnabled = frame.todayCount > 0,
+            )
+            QuietTextButton(
+                stringResource(R.string.reset_lifetime),
+                enabled = frame.frame.lifetimeCount > 0 || frame.todayCount > 0,
+            ) { confirmLifetime = true }
+            Spacer(Modifier.height(8.dp))
         }
     }
     if (confirmLifetime) {

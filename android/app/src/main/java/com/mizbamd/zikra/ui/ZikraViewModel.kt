@@ -23,6 +23,7 @@ import com.mizbamd.zikra.util.SAMPLE_LON
 import com.mizbamd.zikra.util.VolumeUpBus
 import com.mizbamd.zikra.util.ZikraTime
 import com.mizbamd.zikra.util.tapHaptic
+import com.mizbamd.zikra.util.targetHaptic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -140,10 +141,19 @@ class ZikraViewModel(
     fun increment(frameId: String) {
         viewModelScope.launch {
             val s = state.value.settings
-            if (s.haptics) getApplication<Application>().tapHaptic()
+            val current = state.value.frames.firstOrNull { it.frame.id == frameId }
+            val willHitTarget = current?.target != null && current.todayCount + 1 == current.target
+            // Skip the short click when completing a target so it does not stack on the 2s buzz.
+            if (s.haptics) {
+                if (willHitTarget) getApplication<Application>().targetHaptic()
+                else getApplication<Application>().tapHaptic()
+            }
             if (s.tickSound) CountTick.play()
             val result = frames.increment(s.userId, frameId)
-            if (result?.justHitTarget == true) doneFrameId.value = frameId
+            if (result?.justHitTarget == true) {
+                doneFrameId.value = frameId
+                if (s.haptics && !willHitTarget) getApplication<Application>().targetHaptic()
+            }
             if (result != null && result.todayCount == 1) {
                 val today = ZikraTime.todayKey(
                     s.resetAt,

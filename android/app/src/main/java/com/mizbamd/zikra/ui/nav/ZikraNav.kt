@@ -181,7 +181,6 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 onUndo = { frame?.let { vm.undo(it.frame.id) } },
                 onReset = { frame?.let { vm.resetToday(it.frame.id) } },
                 onResetLifetime = { frame?.let { vm.resetLifetime(it.frame.id) } },
-                onArabic = { frame?.let { nav.navigate("focused/${it.frame.id}") } },
                 onYou = { nav.navigate("you") },
                 onSignIn = { nav.navigate("signin") },
                 onClearDone = vm::clearDone,
