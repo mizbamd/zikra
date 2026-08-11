@@ -11,8 +11,13 @@ class AuthRepository(
     private val frames: FrameRepository,
 ) {
     suspend fun register(email: String, password: String) {
-        val res = runCatching { api.register(email.trim(), password) }
-            .getOrElse { throw wrap(it) }
+        val trimmed = email.trim()
+        val res = runCatching { api.register(trimmed, password) }.getOrElse { err ->
+            if (err is ApiException && err.message?.contains("already exists", ignoreCase = true) == true) {
+                return login(trimmed, password)
+            }
+            throw wrap(err)
+        }
         settings.signIn(res.userId, res.email, res.token)
         frames.onSignedIn(res.userId)
     }
@@ -44,6 +49,6 @@ class AuthRepository(
 
     private fun wrap(t: Throwable): Throwable = when (t) {
         is ApiException -> t
-        else -> ApiException("Can’t reach the Zikra server. Check that it is running, or continue as guest.")
+        else -> ApiException("Can’t reach Zikra online. Turn on Wi‑Fi or mobile data, then try again — or continue as guest.")
     }
 }
