@@ -2,11 +2,18 @@ package com.mizbamd.zikra
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.mizbamd.zikra.auth.LogMailer
+import com.mizbamd.zikra.auth.OtpCodes
+import com.mizbamd.zikra.auth.OtpHasher
+import com.mizbamd.zikra.auth.ResendMailer
 import com.mizbamd.zikra.auth.Security
 import com.mizbamd.zikra.catalog.DhikrCatalog
 import com.mizbamd.zikra.config.Env
 import com.mizbamd.zikra.db.Database
 import com.mizbamd.zikra.models.ErrorResponse
+import com.mizbamd.zikra.ratelimit.RateLimitRules
+import com.mizbamd.zikra.ratelimit.RateLimiter
+import com.mizbamd.zikra.ratelimit.ZikraRateLimit
 import com.mizbamd.zikra.repo.DailyCountRepo
 import com.mizbamd.zikra.repo.FrameRepo
 import com.mizbamd.zikra.repo.UserRepo
@@ -26,6 +33,8 @@ import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.path
 import io.ktor.server.response.respond
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
@@ -53,8 +62,21 @@ fun Application.zikraModule(env: Env = Env.load()) {
     val users = UserRepo(db)
     val frames = FrameRepo(db)
     val dailyCounts = DailyCountRepo(db)
+    val limiter = RateLimiter()
+    val otpCodes = OtpCodes(OtpHasher(env.jwtSecret))
+    val mailer = if (env.emailConfigured) {
+        ResendMailer(env.resendApiKey!!, env.otpFromEmail!!)
+    } else {
+        LogMailer()
+    }
 
-    install(CallLogging) { level = Level.INFO }
+    install(CallLogging) {
+        level = Level.INFO
+        // Path only — never URI/query, Authorization, JWT, passwords, or OTP codes.
+        format { call ->
+            "${call.request.httpMethod.value} ${call.request.path()} - ${call.response.status()?.value}"
+        }
+    }
     install(ContentNegotiation) {
         json(
             Json {
@@ -88,7 +110,7 @@ fun Application.zikraModule(env: Env = Env.load()) {
             LoggerFactory.getLogger("zikra").error("Unhandled error", cause)
             call.respond(
                 HttpStatusCode.InternalServerError,
-                ErrorResponse(cause.message ?: "Internal error"),
+                ErrorResponse(if (env.production) "Internal error" else (cause.message ?: "Internal error")),
             )
         }
     }
@@ -103,6 +125,10 @@ fun Application.zikraModule(env: Env = Env.load()) {
             }
         }
     }
+    install(ZikraRateLimit) {
+        this.limiter = limiter
+        this.rules = RateLimitRules.defaults
+    }
 
-    configureRoutes(env, security, users, frames, dailyCounts)
+    configureRoutes(env, security, users, frames, dailyCounts, otpCodes, mailer, limiter)
 }

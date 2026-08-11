@@ -83,7 +83,7 @@ Google’s “collected” means data **sent off the device**. Guest mode sends 
 | Type | Collected? | Shared with third parties? | Sold? | Required? | Purpose |
 |---|---|---|---|---|---|
 | Email address | Yes | No | No | Yes, for account | App functionality (account) |
-| User passwords | Yes (hashed server-side) | No | No | Yes, for account | App functionality (account) |
+| User passwords | No (app uses email OTP; legacy password hashes may exist server-side for older accounts) | No | No | — | — |
 | Other user-generated content | Yes — dhikr frames and counts the user records | No | No | Optional (guest works without it) | App functionality |
 | Approximate / precise location | **No** (not transmitted) | — | — | — | Stays on device for Hijri sunset |
 | Contacts, photos, files, health, financial | No | | | | |
@@ -108,7 +108,7 @@ Do not claim independent security review unless you have one.
 
 ### INTERNET
 
-Needed so signed-in users can register, sign in, sync frames/counts, and delete their account. Guest mode does not require a working network. Cleartext HTTP is for local/emulator development only; production builds should use `https://zikra-api.fly.dev` (custom domain is backlog) — see [DEPLOY.md](DEPLOY.md).
+Needed so signed-in users can request an email sign-in code, sign in, sync frames/counts, and delete their account. Guest mode does not require a working network. Cleartext HTTP is for local/emulator development only; production builds should use `https://zikra-api.fly.dev` (custom domain is backlog) — see [DEPLOY.md](DEPLOY.md).
 
 ### VIBRATE
 

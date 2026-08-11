@@ -10,6 +10,14 @@
     <string name="password">Password</string>
     <string name="confirm_password">Confirm password</string>
     <string name="invalid_email">Enter a valid email address.</string>
+    <string name="send_code">Send code</string>
+    <string name="sending_code">Sending code…</string>
+    <string name="enter_code">6-digit code</string>
+    <string name="code_sent">We sent a 6-digit code to %1$s.</string>
+    <string name="continue_with_code">Continue</string>
+    <string name="invalid_code">Enter the 6-digit code.</string>
+    <string name="resend_code">Resend code</string>
+    <string name="change_email">Use a different email</string>
     <string name="password_too_short">Password must be at least 8 characters.</string>
     <string name="passwords_dont_match">Passwords don’t match.</string>
     <string name="signing_in">Signing in…</string>

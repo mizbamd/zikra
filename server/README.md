@@ -12,8 +12,10 @@ curl http://localhost:8080/health
 
 | Method | Path | Auth |
 |---|---|---|
-| `POST` | `/v1/auth/register` | no |
-| `POST` | `/v1/auth/login` | no |
+| `POST` | `/v1/auth/otp/request` | no — `{ "email" }` |
+| `POST` | `/v1/auth/otp/verify` | no — `{ "email", "code" }` → JWT |
+| `POST` | `/v1/auth/register` | no (legacy password signup) |
+| `POST` | `/v1/auth/login` | no (legacy password login) |
 | `GET` / `POST` | `/v1/sync` | Bearer JWT |
 | `GET` | `/v1/me` | Bearer JWT |
 | `DELETE` | `/v1/account` | Bearer JWT |

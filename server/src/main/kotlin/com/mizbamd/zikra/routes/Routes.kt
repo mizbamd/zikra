@@ -1,5 +1,8 @@
 package com.mizbamd.zikra.routes
 
+import com.mizbamd.zikra.auth.Mailer
+import com.mizbamd.zikra.auth.MailerException
+import com.mizbamd.zikra.auth.OtpCodes
 import com.mizbamd.zikra.auth.Security
 import com.mizbamd.zikra.config.Env
 import com.mizbamd.zikra.catalog.DhikrCatalog
@@ -10,13 +13,19 @@ import com.mizbamd.zikra.models.ErrorResponse
 import com.mizbamd.zikra.models.GoogleSignInRequest
 import com.mizbamd.zikra.models.HealthResponse
 import com.mizbamd.zikra.models.LoginRequest
+import com.mizbamd.zikra.models.OtpRequest
+import com.mizbamd.zikra.models.OtpRequestResponse
+import com.mizbamd.zikra.models.OtpVerifyRequest
 import com.mizbamd.zikra.models.RegisterRequest
 import com.mizbamd.zikra.models.SyncPullResponse
 import com.mizbamd.zikra.models.SyncPushRequest
 import com.mizbamd.zikra.models.SyncPushResponse
+import com.mizbamd.zikra.ratelimit.RateLimitResult
+import com.mizbamd.zikra.ratelimit.RateLimiter
 import com.mizbamd.zikra.repo.DailyCountRepo
 import com.mizbamd.zikra.repo.FrameRepo
 import com.mizbamd.zikra.repo.UserRepo
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -24,12 +33,14 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
+import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 fun Application.configureRoutes(
@@ -38,7 +49,11 @@ fun Application.configureRoutes(
     users: UserRepo,
     frames: FrameRepo,
     dailyCounts: DailyCountRepo,
+    otpCodes: OtpCodes,
+    mailer: Mailer,
+    limiter: RateLimiter,
 ) {
+    val log = LoggerFactory.getLogger("zikra.auth")
     routing {
         get("/health") {
             call.respond(HealthResponse())
@@ -49,7 +64,7 @@ fun Application.configureRoutes(
                 val body = call.receive<RegisterRequest>()
                 val email = body.email.trim().lowercase()
                 val password = body.password
-                if (!email.contains("@") || password.length < 8) {
+                if (!isValidEmail(email) || password.length < 8) {
                     call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email and a password of 8+ characters are required."))
                     return@post
                 }
@@ -71,10 +86,70 @@ fun Application.configureRoutes(
             post("/login") {
                 val body = call.receive<LoginRequest>()
                 val user = users.findByEmail(body.email.trim().lowercase())
-                if (user == null || !security.verifyPassword(body.password, user.passwordHash)) {
+                val hash = user?.passwordHash
+                if (user == null || hash.isNullOrBlank() || !security.verifyPassword(body.password, hash)) {
                     call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid email or password."))
                     return@post
                 }
+                call.respond(
+                    AuthResponse(
+                        token = security.issueToken(user.id, user.email),
+                        userId = user.id.toString(),
+                        email = user.email,
+                    ),
+                )
+            }
+
+            post("/otp/request") {
+                val body = call.receive<OtpRequest>()
+                val email = body.email.trim().lowercase()
+                if (!isValidEmail(email)) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("A valid email is required."))
+                    return@post
+                }
+                when (val emailLimit = limiter.tryConsume("otp-email:$email", 1, 60_000L)) {
+                    RateLimitResult.Allowed -> Unit
+                    is RateLimitResult.Denied -> {
+                        call.response.header(HttpHeaders.RetryAfter, emailLimit.retryAfterSeconds.toString())
+                        call.respond(
+                            HttpStatusCode.TooManyRequests,
+                            ErrorResponse("Too many requests. Try again later."),
+                        )
+                        return@post
+                    }
+                }
+                if (!mailer.configured && env.production) {
+                    call.respond(HttpStatusCode.ServiceUnavailable, ErrorResponse("email not configured"))
+                    return@post
+                }
+                val issued = otpCodes.issue(email)
+                try {
+                    mailer.sendOtp(email, issued.code)
+                } catch (_: MailerException) {
+                    otpCodes.invalidate(email)
+                    log.warn("OTP email send failed")
+                    call.respond(
+                        HttpStatusCode.ServiceUnavailable,
+                        ErrorResponse("Could not send email. Try again later."),
+                    )
+                    return@post
+                }
+                call.respond(OtpRequestResponse(ok = true, expiresInSeconds = issued.expiresInSeconds.toInt()))
+            }
+
+            post("/otp/verify") {
+                val body = call.receive<OtpVerifyRequest>()
+                val email = body.email.trim().lowercase()
+                val code = body.code.trim()
+                if (!isValidEmail(email) || !OTP_CODE.matches(code)) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email and a 6-digit code are required."))
+                    return@post
+                }
+                if (!otpCodes.consume(email, code)) {
+                    call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid or expired code."))
+                    return@post
+                }
+                val user = users.findOrCreateByEmail(email)
                 call.respond(
                     AuthResponse(
                         token = security.issueToken(user.id, user.email),
@@ -178,3 +253,12 @@ private fun io.ktor.server.application.ApplicationCall.userId(): UUID? {
     val principal = principal<JWTPrincipal>()
     return principal?.payload?.subject?.let { UUID.fromString(it) }
 }
+
+internal fun isValidEmail(email: String): Boolean {
+    val at = email.indexOf('@')
+    if (at <= 0 || at == email.lastIndex) return false
+    val domain = email.substring(at + 1)
+    return '.' in domain && ' ' !in email
+}
+
+private val OTP_CODE = Regex("^\\d{6}$")

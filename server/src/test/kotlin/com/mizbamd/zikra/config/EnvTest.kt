@@ -27,4 +27,25 @@ class EnvTest {
         assertEquals("samreen", parsed.user)
         assertEquals("", parsed.password)
     }
+
+    @Test
+    fun emailConfiguredRequiresBoth() {
+        fun env(key: String?, from: String?) = Env(
+            databaseUrl = "jdbc:postgresql://localhost:5432/zikra",
+            databaseUser = "samreen",
+            databasePassword = "",
+            jwtSecret = Env.LOCAL_JWT_DEFAULT,
+            port = 8080,
+            host = "0.0.0.0",
+            googleWebClientId = null,
+            corsOrigins = emptyList(),
+            production = false,
+            resendApiKey = key,
+            otpFromEmail = from,
+        )
+        assertEquals(true, env("re_test", "Zikra <noreply@example.com>").emailConfigured)
+        assertEquals(false, env("re_test", null).emailConfigured)
+        assertEquals(false, env(null, "noreply@example.com").emailConfigured)
+        assertEquals(false, env("", "noreply@example.com").emailConfigured)
+    }
 }

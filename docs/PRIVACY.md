@@ -13,7 +13,7 @@ This policy describes how Zikra handles information when you use the Android app
 
 ## What Zikra is
 
-Zikra is a quiet tasbih / dhikr counter. You can use it as a **guest** with no account, or **sign in** with email and password so frames and counts can sync across devices.
+Zikra is a quiet tasbih / dhikr counter. You can use it as a **guest** with no account, or **sign in** with an email one-time code so frames and counts can sync across devices.
 
 Google Sign-In is not offered in this version.
 
@@ -31,8 +31,9 @@ If you create an account, we store:
 
 | Data | Why |
 |---|---|
-| Email address | Account identifier and sign-in |
-| Password (bcrypt hash only) | Authentication. We never store plaintext passwords |
+| Email address | Account identifier and to send a one-time sign-in code |
+| One-time sign-in codes | Delivered by email; stored only as an HMAC hash, expire in 10 minutes |
+| Password (bcrypt hash only, legacy) | Older accounts created before email OTP. We never store plaintext passwords. New accounts have no password |
 | Dhikr frames | Arabic text, transliteration, optional daily target, sort order, timestamps |
 | Counts | Daily counts and lifetime totals per frame |
 | Account timestamps | Created / updated times |
@@ -60,7 +61,7 @@ On-device daily count history older than **24 months** is pruned so local storag
 ## How we use information
 
 - Provide the app and sync your frames and counts when you are signed in.
-- Authenticate you (email + password).
+- Authenticate you (email + one-time code; legacy email + password still accepted on the API).
 - Estimate Hijri sunset on the device when location is enabled.
 - Comply with Play Store account-deletion requirements and applicable data-protection requests.
 
@@ -71,7 +72,7 @@ JWT session tokens are issued by the API (currently 14 days). Tokens are not a s
 ## Legal bases (where GDPR / similar laws apply)
 
 - **Contract / requested service:** account, sync, and deletion.
-- **Legitimate interest:** keeping the service secure (password hashing, rejecting invalid sign-in).
+- **Legitimate interest:** keeping the service secure (hashed OTP codes, rate limits, rejecting invalid sign-in).
 - **Consent:** optional location permission and optional notification permission on Android.
 
 ---
@@ -80,7 +81,7 @@ JWT session tokens are issued by the API (currently 14 days). Tokens are not a s
 
 We do not sell personal information.
 
-We may share data only if required by law, or with a hosting provider that stores the database and API on our behalf (for example a VPS or Fly.io Postgres). Those processors are used only to run Zikra, not to build profiles or ads.
+We may share data only if required by law, or with a hosting provider that stores the database and API on our behalf (for example a VPS or Fly.io Postgres). To send sign-in codes we use **Resend** as an email processor (your email address and the message content). Those processors are used only to run Zikra, not to build profiles or ads.
 
 ---
 
@@ -104,7 +105,7 @@ Zikra is not directed at children under 13. We do not knowingly collect personal
 
 ## Security
 
-Passwords are hashed with bcrypt. The production API should be served only over HTTPS. Access to the database is limited to the API. No method of transmission or storage is 100% secure.
+Sign-in codes are hashed (HMAC-SHA256) and expire after 10 minutes. Legacy passwords are hashed with bcrypt. The production API should be served only over HTTPS. Access to the database is limited to the API. No method of transmission or storage is 100% secure.
 
 ---
 

@@ -20,7 +20,7 @@ import java.util.UUID
 data class UserRow(
     val id: UUID,
     val email: String,
-    val passwordHash: String,
+    val passwordHash: String?,
     val googleId: String?,
 )
 
@@ -47,6 +47,22 @@ class UserRepo(private val db: Database) {
             email.lowercase(),
             passwordHash,
         ) { it.toUser() } ?: error("insert user failed")
+    }
+
+    fun findOrCreateByEmail(email: String): UserRow = db.withConnection {
+        val inserted = queryOne(
+            """
+            INSERT INTO users (email, password_hash)
+            VALUES (?, NULL)
+            ON CONFLICT (email) DO NOTHING
+            RETURNING id, email, password_hash, google_id
+            """.trimIndent(),
+            email.lowercase(),
+        ) { it.toUser() }
+        inserted ?: queryOne(
+            "SELECT id, email, password_hash, google_id FROM users WHERE email = ?",
+            email.lowercase(),
+        ) { it.toUser() } ?: error("find or create user failed")
     }
 
     /** Permanently deletes the user, frames, and daily counts (GDPR-style). */
