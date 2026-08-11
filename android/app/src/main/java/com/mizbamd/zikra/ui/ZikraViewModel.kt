@@ -18,6 +18,7 @@ import com.mizbamd.zikra.data.repo.FrameToday
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.util.SAMPLE_LAT
 import com.mizbamd.zikra.util.SAMPLE_LON
+import com.mizbamd.zikra.util.VolumeUpBus
 import com.mizbamd.zikra.util.ZikraTime
 import com.mizbamd.zikra.util.tapHaptic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -104,6 +105,11 @@ class ZikraViewModel(
                     frames.ensureSeeded(s.userId, true)
                     frames.syncQuietly()
                 }
+            }
+        }
+        viewModelScope.launch {
+            VolumeUpBus.ticks.collect { frameId ->
+                if (state.value.settings.volumeUpIncrement) increment(frameId)
             }
         }
     }

@@ -148,6 +148,7 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
             GuestScreen(
                 dates = vm.displayDates(),
                 frame = frame,
+                volumeUpEnabled = state.settings.volumeUpIncrement,
                 showDone = state.doneFrameId != null,
                 onCount = { frame?.let { vm.increment(it.frame.id) } },
                 onUndo = { frame?.let { vm.undo(it.frame.id) } },

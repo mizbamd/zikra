@@ -17,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,15 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
 import com.mizbamd.zikra.data.repo.FrameToday
+import com.mizbamd.zikra.ui.VolumeUpFocusEffect
 import com.mizbamd.zikra.ui.components.CounterActions
 import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.ForestDark
 import com.mizbamd.zikra.ui.theme.ForestMid
 import com.mizbamd.zikra.ui.theme.Gold
 import com.mizbamd.zikra.ui.theme.GoldLight
-import com.mizbamd.zikra.util.VolumeUpBus
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun FocusedScreen(
@@ -51,15 +49,7 @@ fun FocusedScreen(
     onEdit: () -> Unit,
     onClearDone: () -> Unit,
 ) {
-    DisposableEffect(volumeUpEnabled) {
-        VolumeUpBus.enabled = volumeUpEnabled
-        onDispose { VolumeUpBus.enabled = false }
-    }
-    LaunchedEffect(volumeUpEnabled, frame?.frame?.id) {
-        if (volumeUpEnabled) {
-            VolumeUpBus.ticks.collectLatest { onCount() }
-        }
-    }
+    VolumeUpFocusEffect(frameId = frame?.frame?.id, enabled = volumeUpEnabled)
     LaunchedEffect(showDone) {
         if (showDone) {
             delay(1600)
