@@ -96,11 +96,11 @@ export ANDROID_HOME=$HOME/Library/Android/sdk
 # out: app/build/outputs/bundle/release/app-release.aab  (unsigned unless a keystore is configured)
 ```
 
-Release `API_BASE_URL` defaults to `https://api.zikra.app` and **does not** inherit the emulator URL. Override without committing secrets:
+Release `API_BASE_URL` defaults to `https://zikra-api.fly.dev` and **does not** inherit the emulator URL. Override without committing secrets:
 
 ```
 # android/local.properties
-api.base.url.release=https://api.zikra.app
+api.base.url.release=https://zikra-api.fly.dev
 ```
 
 or env `API_BASE_URL_RELEASE`. Debug still uses `api.base.url`.
@@ -128,10 +128,10 @@ When CI is added:
 3. Keep the phone **offline-first**: Room is source of truth; sync is best-effort after writes.
 
 Do not put secrets in GitHub Actions until the private repo and environments exist.
-=======
+
 ## Production API
 
-See **[docs/DEPLOY.md](docs/DEPLOY.md)**. Default path is Fly.io (`fly.toml`) or a $5 VPS with Caddy + `docker-compose.prod.yml`. Point a later domain at `https://api.zikra.app` and set Android release `api.base.url` to that HTTPS URL. Daily `pg_dump` is documented there; CI does not upload Play AABs.
+See **[docs/DEPLOY.md](docs/DEPLOY.md)**. Default path is Fly.io (`fly.toml`, Option A) at **https://zikra-api.fly.dev**. A custom domain (`api.zikra.app`) is backlog — add it later with `fly certs`. Alternative: a $5 VPS with Caddy + `docker-compose.prod.yml`. Daily `pg_dump` is documented there; CI does not upload Play AABs.
 
 
 ## Brand

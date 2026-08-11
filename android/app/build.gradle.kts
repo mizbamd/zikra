@@ -65,7 +65,7 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                buildConfigString(local("api.base.url.release", "https://api.zikra.app")),
+                buildConfigString(local("api.base.url.release", "https://zikra-api.fly.dev")),
             )
             ndk {
                 abiFilters += listOf("armeabi-v7a", "arm64-v8a")

@@ -9,7 +9,7 @@
 
 # Release API. Never commit a secret here; this is a public HTTPS origin.
 # Override without changing git: api.base.url.release or env API_BASE_URL_RELEASE.
-# api.base.url.release=https://api.zikra.app
+# api.base.url.release=https://zikra-api.fly.dev
 
 # Google Sign-In Web client ID (optional; stub until set)
 # google.web.client.id=
