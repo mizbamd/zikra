@@ -80,6 +80,7 @@ object ZikraTime {
     /**
      * NOAA-style sunrise/sunset. zenith 90.833 = official sunset;
      * 108 = 18° below horizon (astronomical / common Fajr approximation).
+     * City-level (COARSE) coordinates are enough — a few km of error is seconds of sunset.
      */
     fun solarEvent(
         lat: Double,

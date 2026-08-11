@@ -3,10 +3,12 @@ package com.mizbamd.zikra
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.mizbamd.zikra.data.local.SettingsStore
 import com.mizbamd.zikra.di.appModule
 import com.mizbamd.zikra.util.DhikrLexicon
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -21,9 +23,7 @@ class ZikraApplication : Application() {
             modules(appModule)
         }
         runCatching {
-            val store = org.koin.java.KoinJavaComponent.get<com.mizbamd.zikra.data.local.SettingsStore>(
-                com.mizbamd.zikra.data.local.SettingsStore::class.java,
-            )
+            val store = get<SettingsStore>()
             val lang = runBlocking { store.settings.first().language }
             AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
         }

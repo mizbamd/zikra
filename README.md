@@ -64,8 +64,8 @@ You need **Android Studio** (or a command-line SDK) with **compile/target SDK 35
 
 1. Install Android Studio and open `android/`.
 2. Let it create `android/local.properties` with `sdk.dir=...`, or copy `android/local.properties.example`.
-3. Emulator talks to the server at `http://10.0.2.2:8080` (already the default `API_BASE_URL`).
-4. Physical device: set `api.base.url=http://YOUR_LAN_IP:8080` in `local.properties`.
+3. **Debug** talks to the server at `http://10.0.2.2:8080` (default `API_BASE_URL` for the debug build type).
+4. Physical device (debug): set `api.base.url=http://YOUR_LAN_IP:8080` in `local.properties`. Cleartext HTTP is allowed only on debug.
 5. Run the `app` configuration, or:
 
 ```bash
@@ -77,12 +77,47 @@ Guest mode works with the server off. Sign-in shows a clear error if the API is 
 
 Google Sign-In: add `google.web.client.id=...` to `android/local.properties` when you have a Web client ID. Until then the button explains that it is not configured.
 
+## Play / release binaries
+
+Publish an **Android App Bundle**, not a fat APK. Play serves ABI / density splits from the AAB. Release is minified (R8) and resource-shrunk; native libs are `armeabi-v7a` + `arm64-v8a` only (no x86 in production).
+
+```bash
+cd android
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+export ANDROID_HOME=$HOME/Library/Android/sdk
+./gradlew :app:bundleRelease
+# out: app/build/outputs/bundle/release/app-release.aab  (unsigned unless a keystore is configured)
+```
+
+Release `API_BASE_URL` defaults to `https://api.zikra.app` and **does not** inherit the emulator URL. Override without committing secrets:
+
+```
+# android/local.properties
+api.base.url.release=https://api.zikra.app
+```
+
+or env `API_BASE_URL_RELEASE`. Debug still uses `api.base.url`.
+
+### Signing
+
+Do not put the upload keystore or passwords in git. If `zikra.keystore.file` / `ZIKRA_KEYSTORE_FILE` is unset or the file is missing, Gradle skips `signingConfigs.release` so CI can sign later.
+
+```
+# android/local.properties (gitignored)
+zikra.keystore.file=/absolute/path/to/zikra-upload.jks
+zikra.keystore.password=...
+zikra.keystore.alias=upload
+zikra.keystore.key.password=...
+```
+
+Env equivalents: `ZIKRA_KEYSTORE_FILE`, `ZIKRA_KEYSTORE_PASSWORD`, `ZIKRA_KEYSTORE_ALIAS`, `ZIKRA_KEYSTORE_KEY_PASSWORD`.
+
 ## Daily deploys (later — not implemented)
 
 When CI is added:
 
 1. **API** — `server/gradlew installDist` (or a fat JAR) on a small VM / Fly / Cloud Run in front of managed Postgres. Flyway stays in-process on boot. Rotate `JWT_SECRET`.
-2. **Android** — `android/gradlew :app:assembleRelease` (and later Play / internal track). Store the upload key outside git.
+2. **Android** — `android/gradlew :app:bundleRelease` for Play. Store the upload key outside git (`ZIKRA_KEYSTORE_*`).
 3. Keep the phone **offline-first**: Room is source of truth; sync is best-effort after writes.
 
 Do not put secrets in GitHub Actions until the private repo and environments exist.

@@ -44,6 +44,10 @@ import com.mizbamd.zikra.ui.theme.Forest
 import com.mizbamd.zikra.ui.theme.Gold
 import com.mizbamd.zikra.ui.theme.GoldLight
 
+/**
+ * Approximate (COARSE) location only. Sunset / Hijri math is insensitive to ~1–3 km error,
+ * so ACCESS_FINE_LOCATION / GPS is not requested (easier Play review).
+ */
 @SuppressLint("MissingPermission")
 @Composable
 fun LocationPermissionEffect(
@@ -53,14 +57,10 @@ fun LocationPermissionEffect(
 ) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
+        ActivityResultContracts.RequestPermission(),
     ) { granted ->
-        val ok = granted[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-            granted[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (ok) {
-            val lm = context.getSystemService(LocationManager::class.java)
-            val loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                ?: lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        if (granted) {
+            val loc = readApproxLocation(context.getSystemService(LocationManager::class.java))
             if (loc != null) onCoordinates(loc.latitude, loc.longitude, true)
             else onSampleLocation()
         } else {
@@ -73,23 +73,23 @@ fun LocationPermissionEffect(
             onSampleLocation()
             return@LaunchedEffect
         }
-        val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
         val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
-        if (fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED) {
-            val lm = context.getSystemService(LocationManager::class.java)
-            val loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                ?: lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        if (coarse == PackageManager.PERMISSION_GRANTED) {
+            val loc = readApproxLocation(context.getSystemService(LocationManager::class.java))
             if (loc != null) onCoordinates(loc.latitude, loc.longitude, true)
             else onSampleLocation()
         } else {
-            launcher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                ),
-            )
+            launcher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
     }
+}
+
+@SuppressLint("MissingPermission")
+private fun readApproxLocation(lm: LocationManager?): android.location.Location? {
+    if (lm == null) return null
+    val network = runCatching { lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) }.getOrNull()
+    val passive = runCatching { lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER) }.getOrNull()
+    return listOfNotNull(network, passive).maxByOrNull { it.time }
 }
 
 @Composable
