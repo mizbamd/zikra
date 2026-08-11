@@ -108,7 +108,7 @@ Do not claim independent security review unless you have one.
 
 ### INTERNET
 
-Needed so signed-in users can register, sign in, sync frames/counts, and delete their account. Guest mode does not require a working network. Cleartext HTTP is for local/emulator development only; production builds should use `https://api.zikra.app` (or your host) — see [DEPLOY.md](DEPLOY.md).
+Needed so signed-in users can register, sign in, sync frames/counts, and delete their account. Guest mode does not require a working network. Cleartext HTTP is for local/emulator development only; production builds should use `https://zikra-api.fly.dev` (custom domain is backlog) — see [DEPLOY.md](DEPLOY.md).
 
 ### VIBRATE
 
@@ -154,7 +154,7 @@ Notes:
 ### Before you create the production release
 
 - [ ] Host [PRIVACY.md](PRIVACY.md) on HTTPS; paste URL in Play Console
-- [ ] Deploy API with HTTPS ([DEPLOY.md](DEPLOY.md)); set release `API_BASE_URL` to that URL (e.g. `https://api.zikra.app`)
+- [ ] Deploy API with HTTPS ([DEPLOY.md](DEPLOY.md)); set release `API_BASE_URL` to that URL (default `https://zikra-api.fly.dev`)
 - [ ] Confirm `GET https://…/health` returns ok
 - [ ] Confirm signed-in **Delete account** removes the row in Postgres and returns to welcome
 - [ ] Guest: no delete-account control (nothing to delete)

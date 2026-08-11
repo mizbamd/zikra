@@ -51,12 +51,25 @@ Deletes the user, frames, and daily counts. The Android **You** screen calls thi
 
 ## Option A — Fly.io (documented default)
 
-Cheapest reasonable path for a small JVM: Fly Postgres + one shared-cpu app. You do **not** need a Fly account to merge these files.
+This is the production path. First public URL: **https://zikra-api.fly.dev**. A custom domain (`api.zikra.app`) is **backlog**.
 
-From the repo root, when you are ready:
+Cheapest reasonable path for a small JVM: Fly Postgres + one shared-cpu app. You do **not** need a Fly account to merge these files. Do **not** put secrets in git.
+
+### Install flyctl
+
+macOS (non-interactive):
 
 ```bash
-# once
+curl -L https://fly.io/install.sh | sh
+export FLYCTL_INSTALL="$HOME/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
+```
+
+Or Homebrew: `brew install flyctl`.
+
+### First deploy (from the repo root)
+
+```bash
 fly auth login
 fly apps create zikra-api          # must match fly.toml app name, or edit fly.toml
 fly postgres create --name zikra-db --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1
@@ -64,16 +77,26 @@ fly postgres attach zikra-db -a zikra-api
 
 fly secrets set ZIKRA_ENV=production JWT_SECRET="$(openssl rand -base64 48)"
 # attach already sets DATABASE_URL (postgres://…). Env.parseDatabaseUrl accepts it.
+# Never commit JWT_SECRET, DATABASE_URL, or .env.
 
 fly deploy
-fly scale count 1 -a zikra-api
 ```
 
-`fly.toml` forces HTTPS on the public URL. Bind is `0.0.0.0:8080`. JVM RAM: `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75` in the image.
+Health: `GET https://zikra-api.fly.dev/health` → `{"status":"ok","service":"zikra"}`.
 
-Later: `fly certs add api.zikra.app` and point DNS at Fly.
+`fly.toml` keeps the API always on (`auto_stop_machines = "off"`, `min_machines_running = 1`) so login/sync is not blocked by a cold start. Region is `iad`. Bind is `0.0.0.0:8080`. JVM RAM: `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75` in the image.
 
-Machine size: start at **shared-cpu-1x / 512MB–1GB**. If Flyway + Hikari OOM on boot, bump memory rather than adding Redis.
+Machine size: **shared-cpu-1x / 512MB** is enough for ~100 users. If Flyway + Hikari OOM on boot, bump memory rather than adding Redis.
+
+### Custom domain (backlog)
+
+When the domain exists:
+
+```bash
+fly certs add api.zikra.app
+```
+
+Point DNS at Fly (A/AAAA or CNAME as `fly certs` prints), then set Android release `api.base.url.release` to `https://api.zikra.app`. Until then, production is **https://zikra-api.fly.dev**.
 
 ---
 
@@ -99,15 +122,15 @@ Do not expose Postgres publicly. Compose publishes only the API port.
 
 ## Domain
 
-Plan: **https://api.zikra.app** when the domain exists.
+Production now: **https://zikra-api.fly.dev** (Fly default hostname). Custom domain (`api.zikra.app`) is backlog — see Option A.
 
-Set the Android **release** `API_BASE_URL` to that HTTPS URL via `android/local.properties`:
+Android **release** `API_BASE_URL` already defaults to the Fly URL in `android/app/build.gradle.kts`. Override via `android/local.properties` if needed:
 
 ```
-api.base.url=https://api.zikra.app
+api.base.url.release=https://zikra-api.fly.dev
 ```
 
-or the `API_BASE_URL` environment variable when assembling release. Do not ship `http://10.0.2.2:8080` in a Play build.
+or env `API_BASE_URL_RELEASE` when assembling release. Do not ship `http://10.0.2.2:8080` in a Play build.
 
 ---
 
