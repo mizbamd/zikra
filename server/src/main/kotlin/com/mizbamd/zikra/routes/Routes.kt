@@ -2,6 +2,8 @@ package com.mizbamd.zikra.routes
 
 import com.mizbamd.zikra.auth.Security
 import com.mizbamd.zikra.config.Env
+import com.mizbamd.zikra.catalog.DhikrCatalog
+import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.models.AuthResponse
 import com.mizbamd.zikra.models.ErrorResponse
 import com.mizbamd.zikra.models.GoogleSignInRequest
@@ -126,8 +128,24 @@ fun Application.configureRoutes(
                     return@post
                 }
                 val body = call.receive<SyncPushRequest>()
-                body.frames.forEach { frames.upsert(userId, it) }
-                body.dailyCounts.forEach { dailyCounts.upsert(userId, it) }
+                val frameResult = frames.upsertAll(userId, body.frames)
+                body.dailyCounts
+                    .filter { it.frameId !in frameResult.rejectedFrameIds }
+                    .forEach { dailyCounts.upsert(userId, it) }
+                if (frameResult.overLimit) {
+                    call.respond(
+                        HttpStatusCode.Conflict,
+                        ErrorResponse(FrameLimitPolicy.message()),
+                    )
+                    return@post
+                }
+                if (frameResult.offCatalog) {
+                    call.respond(
+                        HttpStatusCode.UnprocessableEntity,
+                        ErrorResponse(DhikrCatalog.message()),
+                    )
+                    return@post
+                }
                 call.respond(
                     SyncPushResponse(
                         frames = frames.listForUser(userId),

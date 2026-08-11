@@ -15,8 +15,10 @@ import com.mizbamd.zikra.data.local.SettingsStore
 import com.mizbamd.zikra.data.repo.AuthRepository
 import com.mizbamd.zikra.data.repo.FrameRepository
 import com.mizbamd.zikra.data.repo.FrameToday
+import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.util.SAMPLE_LAT
 import com.mizbamd.zikra.util.SAMPLE_LON
+import com.mizbamd.zikra.util.VolumeUpBus
 import com.mizbamd.zikra.util.ZikraTime
 import com.mizbamd.zikra.util.tapHaptic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,6 +39,8 @@ data class UiState(
     val authError: String? = null,
     val authBusy: Boolean = false,
     val doneFrameId: String? = null,
+    val maxFrames: Int = FrameLimitPolicy.DEFAULT_MAX_FRAMES,
+    val canAddFrame: Boolean = true,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,7 +79,18 @@ class ZikraViewModel(
         historyFlow,
         authBits,
     ) { settings: Settings, today: List<FrameToday>, history: List<DailyCountEntity>, bits: Triple<String?, Boolean, String?> ->
-        UiState(settings, today, history, bits.first, bits.second, bits.third)
+        val signedIn = settings.mode == SessionMode.SIGNED_IN
+        val maxFrames = FrameLimitPolicy.maxFramesFor(signedIn)
+        UiState(
+            settings = settings,
+            frames = today,
+            history = history,
+            authError = bits.first,
+            authBusy = bits.second,
+            doneFrameId = bits.third,
+            maxFrames = maxFrames,
+            canAddFrame = FrameLimitPolicy.canAdd(today.size, signedIn),
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, UiState())
 
     init {
@@ -90,6 +105,11 @@ class ZikraViewModel(
                     frames.ensureSeeded(s.userId, true)
                     frames.syncQuietly()
                 }
+            }
+        }
+        viewModelScope.launch {
+            VolumeUpBus.ticks.collect { frameId ->
+                if (state.value.settings.volumeUpIncrement) increment(frameId)
             }
         }
     }

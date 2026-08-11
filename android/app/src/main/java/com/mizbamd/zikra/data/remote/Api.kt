@@ -11,6 +11,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -22,7 +24,7 @@ import kotlinx.serialization.json.Json
 data class AuthResponse(val token: String, val userId: String, val email: String)
 
 @Serializable
-data class ErrorBody(val error: String = "Request failed")
+data class ErrorBody(val error: String? = null)
 
 @Serializable
 data class Credentials(val email: String, val password: String)
@@ -62,6 +64,7 @@ data class SyncPushRequest(
 )
 
 class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/')) {
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val client = HttpClient(OkHttp) {
         expectSuccess = false
         install(HttpTimeout) {
@@ -70,7 +73,7 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
             socketTimeoutMillis = 8_000
         }
         install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true; encodeDefaults = true })
+            json(json)
         }
         defaultRequest {
             url("$baseUrl/")
@@ -92,8 +95,7 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
         val res = client.get("$baseUrl/v1/sync") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
-        if (res.status.value !in 200..299) throw ApiException(messageOf(res.body()))
-        return res.body()
+        return parseOrThrow(res)
     }
 
     suspend fun push(token: String, body: SyncPushRequest): SyncPullResponse {
@@ -101,17 +103,26 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
             header(HttpHeaders.Authorization, "Bearer $token")
             setBody(body)
         }
-        if (res.status.value !in 200..299) throw ApiException(messageOf(res.body()))
-        return res.body()
+        return parseOrThrow(res)
     }
 
     private suspend fun authPost(path: String, body: Credentials): AuthResponse {
         val res = client.post("$baseUrl$path") { setBody(body) }
-        if (res.status.value in 200..299) return res.body()
-        throw ApiException(messageOf(res.body()))
+        return parseOrThrow(res)
     }
 
-    private fun messageOf(body: ErrorBody): String = body.error.ifBlank { "Request failed" }
+    private suspend inline fun <reified T> parseOrThrow(res: HttpResponse): T {
+        if (res.status.value in 200..299) return res.body()
+        throw ApiException(errorMessage(res))
+    }
+
+    private suspend fun errorMessage(res: HttpResponse): String {
+        val raw = runCatching { res.bodyAsText() }.getOrNull().orEmpty()
+        val parsed = runCatching { json.decodeFromString<ErrorBody>(raw).error }.getOrNull()
+        return parsed?.takeIf { it.isNotBlank() }
+            ?: raw.takeIf { it.isNotBlank() }
+            ?: "Request failed (${res.status.value})"
+    }
 }
 
 class ApiException(message: String) : Exception(message)

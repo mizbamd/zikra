@@ -17,6 +17,12 @@ application {
     mainClass.set("com.mizbamd.zikra.ApplicationKt")
 }
 
+sourceSets {
+    main {
+        resources.srcDir(rootProject.file("../catalog"))
+    }
+}
+
 val ktorVersion = "2.3.13"
 val flywayVersion = "10.21.0"
 

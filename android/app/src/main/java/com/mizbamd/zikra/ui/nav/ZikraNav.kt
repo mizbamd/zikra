@@ -1,6 +1,8 @@
 package com.mizbamd.zikra.ui.nav
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
@@ -16,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -26,7 +29,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.mizbamd.zikra.BuildConfig
 import com.mizbamd.zikra.R
 import com.mizbamd.zikra.data.local.FrameEntity
 import com.mizbamd.zikra.data.local.SessionMode
@@ -119,7 +121,11 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
         }
     }
 
-    NavHost(navController = nav, startDestination = "welcome") {
+    NavHost(
+        navController = nav,
+        startDestination = "welcome",
+        modifier = Modifier.fillMaxSize(),
+    ) {
         composable("welcome") {
             WelcomeScreen(
                 onGuest = vm::continueGuest,
@@ -133,13 +139,13 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 onLogin = vm::login,
                 onRegister = vm::register,
                 onGoogle = {
-                    val msg = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isBlank()) {
-                        context.getString(R.string.google_missing)
-                    } else {
-                        "Google Sign-In token verification is not implemented in v1 yet."
-                    }
-                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "Google Sign-In token verification is not implemented in v1 yet.",
+                        Toast.LENGTH_LONG,
+                    ).show()
                 },
+                onClearError = vm::clearAuthError,
                 onBack = { nav.popBackStack() },
                 onGuest = vm::continueGuest,
             )
@@ -149,6 +155,7 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
             GuestScreen(
                 dates = vm.displayDates(),
                 frame = frame,
+                volumeUpEnabled = state.settings.volumeUpIncrement,
                 showDone = state.doneFrameId != null,
                 onCount = { frame?.let { vm.increment(it.frame.id) } },
                 onUndo = { frame?.let { vm.undo(it.frame.id) } },
@@ -160,16 +167,22 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
             )
         }
         composable("home") {
-            HomeScreen(
-                dates = vm.displayDates(),
-                frames = state.frames,
-                doneFrameId = state.doneFrameId,
-                onCount = vm::increment,
-                onFocus = { nav.navigate("focused/$it") },
-                onAdd = { nav.navigate("edit/new") },
-                onClearDone = vm::clearDone,
-                bottomBar = { Bottom("home") },
-            )
+            Box(Modifier.fillMaxSize()) {
+                HomeScreen(
+                    dates = vm.displayDates(),
+                    frames = state.frames,
+                    doneFrameId = state.doneFrameId,
+                    canAddFrame = state.canAddFrame,
+                    maxFrames = state.maxFrames,
+                    onCount = vm::increment,
+                    onFocus = { nav.navigate("focused/$it") },
+                    onAdd = {
+                        if (state.canAddFrame) nav.navigate("edit/new")
+                    },
+                    onClearDone = vm::clearDone,
+                    bottomBar = { Bottom("home") },
+                )
+            }
         }
         composable("history") {
             HistoryScreen(
@@ -230,6 +243,8 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
             }
             EditFrameScreen(
                 existing = existing,
+                atLimit = id == null && !state.canAddFrame,
+                maxFrames = state.maxFrames,
                 onSave = { arabic, transliteration, target ->
                     vm.saveFrame(id, arabic, transliteration, target)
                     nav.popBackStack()

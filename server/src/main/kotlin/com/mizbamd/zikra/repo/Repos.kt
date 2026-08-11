@@ -5,8 +5,11 @@ import com.mizbamd.zikra.db.queryOne
 import com.mizbamd.zikra.db.queryList
 import com.mizbamd.zikra.db.toTimestamp
 import com.mizbamd.zikra.db.update
+import com.mizbamd.zikra.catalog.DhikrCatalog
+import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.models.DailyCountDto
 import com.mizbamd.zikra.models.FrameDto
+import java.sql.Connection
 import java.sql.Date
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -67,46 +70,113 @@ class FrameRepo(private val db: Database) {
         ) { it.toFrame() }
     }
 
-    fun upsert(userId: UUID, frame: FrameDto) {
-        val incomingUpdated = Instant.parse(frame.updatedAt)
-        db.withConnection {
-            val existing = queryOne(
-                "SELECT updated_at FROM frames WHERE id = ? AND user_id = ?",
-                UUID.fromString(frame.id),
-                userId,
-            ) { it.getTimestamp("updated_at").toInstant() }
+    data class PushResult(
+        val rejectedOverLimit: Set<String> = emptySet(),
+        val rejectedOffCatalog: Set<String> = emptySet(),
+    ) {
+        val rejectedFrameIds: Set<String> get() = rejectedOverLimit + rejectedOffCatalog
+        val overLimit: Boolean get() = rejectedOverLimit.isNotEmpty()
+        val offCatalog: Boolean get() = rejectedOffCatalog.isNotEmpty()
+    }
 
-            if (existing != null && !incomingUpdated.isAfter(existing)) return@withConnection
+    fun upsert(userId: UUID, frame: FrameDto): PushResult = upsertAll(userId, listOf(frame))
 
-            update(
-                """
-                INSERT INTO frames (
-                    id, user_id, arabic, transliteration, target, lifetime_count,
-                    sort_order, created_at, updated_at, deleted_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT (id) DO UPDATE SET
-                    arabic = EXCLUDED.arabic,
-                    transliteration = EXCLUDED.transliteration,
-                    target = EXCLUDED.target,
-                    lifetime_count = EXCLUDED.lifetime_count,
-                    sort_order = EXCLUDED.sort_order,
-                    updated_at = EXCLUDED.updated_at,
-                    deleted_at = EXCLUDED.deleted_at
-                WHERE frames.user_id = EXCLUDED.user_id
-                """.trimIndent(),
-                UUID.fromString(frame.id),
+    /**
+     * Last-write-wins upserts, serialized per user so two devices cannot create
+     * the 11th active frame. Existing extras above the cap are left in place;
+     * only new actives (insert or undelete) are rejected.
+     */
+    fun upsertAll(userId: UUID, incoming: List<FrameDto>): PushResult {
+        if (incoming.isEmpty()) return PushResult()
+        return db.withTransaction {
+            queryOne("SELECT id FROM users WHERE id = ? FOR UPDATE", userId) { }
+
+            var active = queryOne(
+                "SELECT COUNT(*)::int AS n FROM frames WHERE user_id = ? AND deleted_at IS NULL",
                 userId,
-                frame.arabic,
-                frame.transliteration,
-                frame.target,
-                frame.lifetimeCount,
-                frame.sortOrder,
-                Timestamp.from(Instant.parse(frame.createdAt)),
-                incomingUpdated.toTimestamp(),
-                if (frame.deleted) incomingUpdated.toTimestamp() else null,
-            )
+            ) { it.getInt("n") } ?: 0
+            val max = FrameLimitPolicy.maxFramesForSignedIn()
+            val rejectedOverLimit = mutableSetOf<String>()
+            val rejectedOffCatalog = mutableSetOf<String>()
+
+            incoming.forEach { frame ->
+                val existing = queryOne(
+                    "SELECT updated_at, deleted_at, arabic, transliteration FROM frames WHERE id = ? AND user_id = ?",
+                    UUID.fromString(frame.id),
+                    userId,
+                ) {
+                    ExistingFrame(
+                        updatedAt = it.getTimestamp("updated_at").toInstant(),
+                        deleted = it.getTimestamp("deleted_at") != null,
+                        arabic = it.getString("arabic"),
+                        transliteration = it.getString("transliteration"),
+                    )
+                }
+                val incomingUpdated = Instant.parse(frame.updatedAt)
+                if (existing != null && !incomingUpdated.isAfter(existing.updatedAt)) return@forEach
+
+                val textUnchanged = existing != null &&
+                    existing.arabic == frame.arabic &&
+                    existing.transliteration == frame.transliteration
+                if (!textUnchanged && !DhikrCatalog.contains(frame.arabic, frame.transliteration)) {
+                    rejectedOffCatalog += frame.id
+                    return@forEach
+                }
+
+                val currentlyActive = existing != null && !existing.deleted
+                val wouldBeActive = !frame.deleted
+                if (wouldBeActive && !currentlyActive) {
+                    if (active >= max) {
+                        rejectedOverLimit += frame.id
+                        return@forEach
+                    }
+                    active++
+                } else if (!wouldBeActive && currentlyActive) {
+                    active--
+                }
+
+                upsertFrame(userId, frame, incomingUpdated)
+            }
+            PushResult(rejectedOverLimit, rejectedOffCatalog)
         }
     }
+
+    private fun Connection.upsertFrame(userId: UUID, frame: FrameDto, incomingUpdated: Instant) {
+        update(
+            """
+            INSERT INTO frames (
+                id, user_id, arabic, transliteration, target, lifetime_count,
+                sort_order, created_at, updated_at, deleted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (id) DO UPDATE SET
+                arabic = EXCLUDED.arabic,
+                transliteration = EXCLUDED.transliteration,
+                target = EXCLUDED.target,
+                lifetime_count = EXCLUDED.lifetime_count,
+                sort_order = EXCLUDED.sort_order,
+                updated_at = EXCLUDED.updated_at,
+                deleted_at = EXCLUDED.deleted_at
+            WHERE frames.user_id = EXCLUDED.user_id
+            """.trimIndent(),
+            UUID.fromString(frame.id),
+            userId,
+            frame.arabic,
+            frame.transliteration,
+            frame.target,
+            frame.lifetimeCount,
+            frame.sortOrder,
+            Timestamp.from(Instant.parse(frame.createdAt)),
+            incomingUpdated.toTimestamp(),
+            if (frame.deleted) incomingUpdated.toTimestamp() else null,
+        )
+    }
+
+    private data class ExistingFrame(
+        val updatedAt: Instant,
+        val deleted: Boolean,
+        val arabic: String,
+        val transliteration: String,
+    )
 
     private fun ResultSet.toFrame() = FrameDto(
         id = getObject("id", UUID::class.java).toString(),

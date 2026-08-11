@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_VOLUME_UP &&
             event.action == KeyEvent.ACTION_DOWN &&
-            VolumeUpBus.enabled
+            VolumeUpBus.shouldHandle
         ) {
             VolumeUpBus.emit()
             return true

@@ -23,11 +23,37 @@ fun Context.tapHaptic() {
     }
 }
 
+/**
+ * Volume-up counting is bound to one focused tasbih, never the home list.
+ * [acquire] from Focused/Guest counter UI; [release] on leave so home
+ * leaves volume keys to the system.
+ */
 object VolumeUpBus {
-    var enabled: Boolean = false
-    private val _ticks = MutableSharedFlow<Unit>(extraBufferCapacity = 16)
+    private val _ticks = MutableSharedFlow<String>(extraBufferCapacity = 16)
     val ticks = _ticks.asSharedFlow()
+
+    @Volatile
+    private var owner: Any? = null
+
+    @Volatile
+    private var focusedFrameId: String? = null
+
+    val shouldHandle: Boolean
+        get() = focusedFrameId != null
+
+    fun acquire(owner: Any, frameId: String) {
+        this.owner = owner
+        this.focusedFrameId = frameId
+    }
+
+    fun release(owner: Any) {
+        if (this.owner === owner) {
+            this.owner = null
+            this.focusedFrameId = null
+        }
+    }
+
     fun emit() {
-        _ticks.tryEmit(Unit)
+        focusedFrameId?.let { _ticks.tryEmit(it) }
     }
 }

@@ -12,13 +12,17 @@ import com.mizbamd.zikra.data.remote.DailyCountDto
 import com.mizbamd.zikra.data.remote.FrameDto
 import com.mizbamd.zikra.data.remote.SyncPushRequest
 import com.mizbamd.zikra.data.remote.ZikraApi
+import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.util.Defaults
+import com.mizbamd.zikra.util.DhikrLexicon
 import com.mizbamd.zikra.util.SAMPLE_LAT
 import com.mizbamd.zikra.util.SAMPLE_LON
 import com.mizbamd.zikra.util.ZikraTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 data class FrameToday(
@@ -36,6 +40,8 @@ class FrameRepository(
     private val settings: SettingsStore,
     private val api: ZikraApi,
 ) {
+    private val seedLock = Mutex()
+
     fun observeToday(userId: String): Flow<List<FrameToday>> =
         combine(
             frames.observeActive(userId),
@@ -52,9 +58,48 @@ class FrameRepository(
     fun observeHistory(userId: String): Flow<List<DailyCountEntity>> = counts.observeAll(userId)
 
     suspend fun ensureSeeded(userId: String, signedIn: Boolean) {
-        if (frames.countActive(userId) > 0) return
-        val seed = if (signedIn) Defaults.seedSignedIn(userId) else Defaults.seedGuest()
-        frames.upsertAll(seed)
+        seedLock.withLock {
+            if (!signedIn) {
+                if (frames.countActive(userId) == 0) frames.upsertAll(Defaults.seedGuest())
+                return
+            }
+            reconcileSignedInDefaults(userId)
+        }
+    }
+
+    /**
+     * Keep exactly the four default dhikr for a signed-in user.
+     * Dedupes races from double-seed, and inserts any missing (e.g. Astaghfirullah).
+     */
+    private suspend fun reconcileSignedInDefaults(userId: String) {
+        val existing = frames.listActive(userId)
+        val now = ZikraTime.nowIso()
+        val claimed = mutableSetOf<String>()
+        Defaults.signedIn.forEachIndexed { index, def ->
+            val matches = existing.filter { it.arabic.trim() == def.arabic && it.id !in claimed }
+            if (matches.isEmpty()) {
+                val stable = existing.find { it.id == Defaults.frameId(userId, def.key) }
+                if (stable == null &&
+                    FrameLimitPolicy.canAdd(frames.countActive(userId), signedIn = true)
+                ) {
+                    frames.upsert(Defaults.toEntity(def, userId, index))
+                }
+                return@forEachIndexed
+            }
+            val keep = matches.maxWith(
+                compareBy<FrameEntity> { it.lifetimeCount }.thenByDescending { it.createdAt },
+            )
+            claimed += keep.id
+            if (keep.sortOrder != index || keep.target != def.target) {
+                frames.update(
+                    keep.copy(sortOrder = index, target = def.target, updatedAt = now, dirty = true),
+                )
+            }
+            matches.filter { it.id != keep.id }.forEach { extra ->
+                claimed += extra.id
+                frames.update(extra.copy(deleted = true, updatedAt = now, dirty = true))
+            }
+        }
     }
 
     suspend fun increment(userId: String, frameId: String): FrameToday? {
@@ -128,14 +173,24 @@ class FrameRepository(
         target: Int?,
     ) {
         val now = ZikraTime.nowIso()
+        val existing = id?.let { frames.get(it) }
+        val unchanged = existing != null &&
+            existing.arabic == arabic &&
+            existing.transliteration == transliteration
+        val catalog = DhikrLexicon.matchPair(arabic, transliteration)
+        if (!unchanged && catalog == null) return
+        val persistArabic = if (unchanged) arabic else catalog!!.arabic
+        val persistLatin = if (unchanged) transliteration else catalog!!.latin
         if (id == null) {
+            val signedIn = userId != GUEST_USER_ID
+            if (!FrameLimitPolicy.canAdd(frames.countActive(userId), signedIn)) return
             val order = frames.listActive(userId).size
             frames.upsert(
                 FrameEntity(
                     id = UUID.randomUUID().toString(),
                     userId = userId,
-                    arabic = arabic,
-                    transliteration = transliteration,
+                    arabic = persistArabic,
+                    transliteration = persistLatin,
                     target = target,
                     lifetimeCount = 0,
                     sortOrder = order,
@@ -146,11 +201,11 @@ class FrameRepository(
                 ),
             )
         } else {
-            val existing = frames.get(id) ?: return
+            val row = existing ?: return
             frames.update(
-                existing.copy(
-                    arabic = arabic,
-                    transliteration = transliteration,
+                row.copy(
+                    arabic = persistArabic,
+                    transliteration = persistLatin,
                     target = target,
                     updatedAt = now,
                     dirty = true,
@@ -204,12 +259,13 @@ class FrameRepository(
             val s = settings.settings.first()
             val pull = api.pull(s.token)
             if (pull.frames.none { !it.deleted }) {
-                // keep local seed and push
                 sync()
             } else {
                 mergeRemote(userId, pull.frames, pull.dailyCounts)
             }
         }
+        ensureSeeded(userId, signedIn = true)
+        syncQuietly()
     }
 
     private suspend fun mergeRemote(

@@ -3,6 +3,7 @@ package com.mizbamd.zikra
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.mizbamd.zikra.auth.Security
+import com.mizbamd.zikra.catalog.DhikrCatalog
 import com.mizbamd.zikra.config.Env
 import com.mizbamd.zikra.db.Database
 import com.mizbamd.zikra.models.ErrorResponse
@@ -40,6 +41,10 @@ fun main() {
 }
 
 fun Application.zikraModule(env: Env = Env.load()) {
+    val catalog = DhikrCatalog::class.java.getResourceAsStream("/dhikr.json")
+        ?: error("dhikr.json missing from classpath (shared catalog/)")
+    DhikrCatalog.load(catalog)
+
     val db = Database(env)
     db.migrate()
 

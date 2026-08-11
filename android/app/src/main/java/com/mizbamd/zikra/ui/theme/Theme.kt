@@ -1,6 +1,8 @@
 package com.mizbamd.zikra.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -18,6 +20,28 @@ val GoldLight = Color(0xFFE4C878)
 val Cream = Color(0xFFF6F1E6)
 val Ink = Color(0xFF14241F)
 val CardWhite = Color(0xFFFFFDF8)
+/** Typed text and hints on forest-green screens (never Ink/black). */
+val OnGreen = Color.White
+
+val OnGreenTextStyle = TextStyle(color = OnGreen, fontSize = 16.sp)
+
+@Composable
+fun zikraOnGreenFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = OnGreen,
+    unfocusedTextColor = OnGreen,
+    disabledTextColor = OnGreen.copy(alpha = 0.55f),
+    cursorColor = Gold,
+    focusedBorderColor = Gold,
+    unfocusedBorderColor = OnGreen.copy(alpha = 0.45f),
+    focusedLabelColor = OnGreen,
+    unfocusedLabelColor = OnGreen.copy(alpha = 0.8f),
+    focusedPlaceholderColor = OnGreen.copy(alpha = 0.8f),
+    unfocusedPlaceholderColor = OnGreen.copy(alpha = 0.8f),
+    focusedContainerColor = Color.Transparent,
+    unfocusedContainerColor = Color.Transparent,
+    focusedTrailingIconColor = GoldLight,
+    unfocusedTrailingIconColor = OnGreen.copy(alpha = 0.75f),
+)
 
 private val ZikraColors = lightColorScheme(
     primary = Gold,

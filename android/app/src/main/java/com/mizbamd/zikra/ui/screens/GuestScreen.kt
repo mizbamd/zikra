@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
 import com.mizbamd.zikra.data.repo.FrameToday
+import com.mizbamd.zikra.ui.VolumeUpFocusEffect
 import com.mizbamd.zikra.ui.components.CounterActions
 import com.mizbamd.zikra.ui.components.DateHeader
 import com.mizbamd.zikra.ui.theme.Cream
@@ -43,6 +44,7 @@ import kotlinx.coroutines.delay
 fun GuestScreen(
     dates: DisplayDates,
     frame: FrameToday?,
+    volumeUpEnabled: Boolean,
     showDone: Boolean,
     onCount: () -> Unit,
     onUndo: () -> Unit,
@@ -52,6 +54,7 @@ fun GuestScreen(
     onSignIn: () -> Unit,
     onClearDone: () -> Unit,
 ) {
+    VolumeUpFocusEffect(frameId = frame?.frame?.id, enabled = volumeUpEnabled)
     LaunchedEffect(showDone) {
         if (showDone) {
             delay(1600)
