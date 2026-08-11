@@ -75,6 +75,8 @@
     <string name="history_export_subject">Zikra daily counts</string>
     <string name="history_empty">No counts yet.</string>
     <string name="summary_empty">Add a dhikr on Home to see it here.</string>
+    <string name="summary_hero_label">You remembered</string>
+    <string name="summary_hero_count">×%d</string>
     <string name="summary_thanks">Jazakum Allahu khayran for using Zikra.</string>
     <string name="summary_thanks_signoff">— MizbaMd</string>
     <plurals name="streak_days">

@@ -214,7 +214,6 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
         composable("summary") {
             SummaryScreen(
                 frames = state.frames,
-                onCount = vm::increment,
                 onFocus = { nav.navigate("focused/$it") },
                 bottomBar = { Bottom("summary") },
             )

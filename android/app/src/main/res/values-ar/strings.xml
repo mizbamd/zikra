@@ -75,6 +75,8 @@
     <string name="history_export_subject">عدّادات ذكرى اليومية</string>
     <string name="history_empty">لا عدّادات بعد.</string>
     <string name="summary_empty">أضف ذكراً من الرئيسية ليظهر هنا.</string>
+    <string name="summary_hero_label">لقد ذكرت</string>
+    <string name="summary_hero_count">×%d</string>
     <string name="summary_thanks">جزاكم الله خيراً لاستخدام ذكرى.</string>
     <string name="summary_thanks_signoff">— MizbaMd</string>
     <plurals name="streak_days">
