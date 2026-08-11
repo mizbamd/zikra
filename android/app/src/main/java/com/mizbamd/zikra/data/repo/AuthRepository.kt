@@ -44,6 +44,6 @@ class AuthRepository(
 
     private fun wrap(t: Throwable): Throwable = when (t) {
         is ApiException -> t
-        else -> ApiException("Can’t reach the Zikra server. Check that it is running, or continue as guest.")
+        else -> ApiException("Can’t reach Zikra online. Turn on Wi‑Fi or mobile data, then try again — or continue as guest.")
     }
 }
