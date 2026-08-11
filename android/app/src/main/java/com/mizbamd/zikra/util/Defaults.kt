@@ -2,9 +2,9 @@ package com.mizbamd.zikra.util
 
 import com.mizbamd.zikra.data.local.FrameEntity
 import com.mizbamd.zikra.data.local.GUEST_USER_ID
-import java.util.UUID
 
 data class DefaultFrame(
+    val key: String,
     val arabic: String,
     val transliteration: String,
     val target: Int,
@@ -12,23 +12,25 @@ data class DefaultFrame(
 
 object Defaults {
     val signedIn = listOf(
-        DefaultFrame("سبحان الله", "SubhanAllah", 33),
-        DefaultFrame("الحمد لله", "Alhamdulillah", 33),
-        DefaultFrame("الله أكبر", "Allahu Akbar", 34),
-        DefaultFrame("أستغفر الله", "Astaghfirullah", 100),
+        DefaultFrame("subhan", "سبحان الله", "SubhanAllah", 33),
+        DefaultFrame("hamd", "الحمد لله", "Alhamdulillah", 33),
+        DefaultFrame("akbar", "الله أكبر", "Allahu Akbar", 34),
+        DefaultFrame("astaghfir", "أستغفر الله", "Astaghfirullah", 100),
     )
 
-    val guest = DefaultFrame("سبحان الله", "SubhanAllah", 33)
+    val guest = signedIn.first()
+
+    fun frameId(userId: String, key: String) = "seed:$userId:$key"
 
     fun seedGuest(): List<FrameEntity> = listOf(toEntity(guest, GUEST_USER_ID, 0))
 
     fun seedSignedIn(userId: String): List<FrameEntity> =
         signedIn.mapIndexed { index, frame -> toEntity(frame, userId, index) }
 
-    private fun toEntity(frame: DefaultFrame, userId: String, order: Int): FrameEntity {
+    fun toEntity(frame: DefaultFrame, userId: String, order: Int): FrameEntity {
         val now = ZikraTime.nowIso()
         return FrameEntity(
-            id = UUID.randomUUID().toString(),
+            id = frameId(userId, frame.key),
             userId = userId,
             arabic = frame.arabic,
             transliteration = frame.transliteration,

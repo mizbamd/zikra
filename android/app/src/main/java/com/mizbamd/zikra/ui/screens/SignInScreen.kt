@@ -35,7 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -84,14 +86,18 @@ fun SignInScreen(
         containerColor = Cream.copy(alpha = 0.12f),
         labelColor = Cream,
     )
+    val fieldText = TextStyle(color = Color.White, fontSize = 16.sp)
     val colors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        disabledTextColor = Color.White.copy(alpha = 0.6f),
+        cursorColor = Gold,
         focusedBorderColor = Gold,
         unfocusedBorderColor = Cream.copy(alpha = 0.4f),
-        focusedTextColor = Cream,
-        unfocusedTextColor = Cream,
         focusedLabelColor = GoldLight,
         unfocusedLabelColor = Cream.copy(alpha = 0.7f),
-        cursorColor = Gold,
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
         focusedTrailingIconColor = GoldLight,
         unfocusedTrailingIconColor = Cream.copy(alpha = 0.7f),
     )
@@ -163,6 +169,7 @@ fun SignInScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
+            textStyle = fieldText,
             colors = colors,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
@@ -185,6 +192,7 @@ fun SignInScreen(
                 .fillMaxWidth()
                 .focusRequester(passwordFocus),
             shape = RoundedCornerShape(14.dp),
+            textStyle = fieldText,
             colors = colors,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
@@ -225,6 +233,7 @@ fun SignInScreen(
                     .fillMaxWidth()
                     .focusRequester(confirmFocus),
                 shape = RoundedCornerShape(14.dp),
+                textStyle = fieldText,
                 colors = colors,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
