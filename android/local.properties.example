@@ -1,11 +1,29 @@
 # Copy to local.properties (gitignored) or let Android Studio write sdk.dir.
 # sdk.dir=/Users/YOU/Library/Android/sdk
 
-# Emulator default is already http://10.0.2.2:8080
+# Debug API (emulator default is already http://10.0.2.2:8080).
 # api.base.url=http://10.0.2.2:8080
 
-# Physical device on the same LAN as the Ktor server:
+# Physical device on the same LAN as the Ktor server (debug builds only):
 # api.base.url=http://192.168.1.10:8080
+
+# Release API. Never commit a secret here; this is a public HTTPS origin.
+# Override without changing git: api.base.url.release or env API_BASE_URL_RELEASE.
+# api.base.url.release=https://api.zikra.app
 
 # Google Sign-In Web client ID (optional; stub until set)
 # google.web.client.id=
+
+# Optional Play upload-key signing. Do not commit the .jks or passwords.
+# If the file is missing, :app:assembleRelease / :app:bundleRelease stay unsigned
+# so CI can sign later.
+# zikra.keystore.file=/absolute/path/to/zikra-upload.jks
+# zikra.keystore.password=
+# zikra.keystore.alias=upload
+# zikra.keystore.key.password=
+#
+# Equivalent env (used when the local.properties key is unset):
+#   ZIKRA_KEYSTORE_FILE
+#   ZIKRA_KEYSTORE_PASSWORD
+#   ZIKRA_KEYSTORE_ALIAS
+#   ZIKRA_KEYSTORE_KEY_PASSWORD
