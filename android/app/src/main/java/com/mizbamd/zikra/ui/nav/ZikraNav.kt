@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -20,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,7 +107,7 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
             NavigationBarItem(
                 selected = selected == "history",
                 onClick = { nav.navigate("history") { launchSingleTop = true } },
-                icon = { Icon(Icons.Outlined.History, contentDescription = null) },
+                icon = { Icon(painterResource(R.drawable.ic_history), contentDescription = null) },
                 label = { Text(stringResource(R.string.history)) },
                 colors = barColors,
             )
@@ -194,12 +194,15 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
         composable("you") {
             YouScreen(
                 settings = state.settings,
+                authBusy = state.authBusy,
+                authError = state.authError,
                 onHaptics = vm::setHaptics,
                 onVolumeUp = vm::setVolumeUp,
                 onResetAt = vm::setResetAt,
                 onLanguage = vm::setLanguage,
                 onLocationEnabled = vm::setLocationEnabled,
                 onSignOut = vm::signOut,
+                onDeleteAccount = vm::deleteAccount,
                 onSignIn = { nav.navigate("signin") },
                 onBack = if (state.settings.mode != SessionMode.SIGNED_IN) {
                     { nav.popBackStack() }

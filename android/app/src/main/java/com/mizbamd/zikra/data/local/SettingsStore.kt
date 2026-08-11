@@ -68,6 +68,11 @@ class SettingsStore(private val context: Context) {
         }
     }
 
+    /** Clears all preferences after account deletion. */
+    suspend fun wipe() {
+        context.dataStore.edit { it.clear() }
+    }
+
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[Keys.haptics] = value }
     suspend fun setVolumeUp(value: Boolean) = context.dataStore.edit { it[Keys.volumeUp] = value }
     suspend fun setResetAt(value: ResetAt) = context.dataStore.edit { it[Keys.resetAt] = value.name }

@@ -3,6 +3,7 @@ package com.mizbamd.zikra.data.repo
 import com.mizbamd.zikra.data.local.SettingsStore
 import com.mizbamd.zikra.data.remote.ApiException
 import com.mizbamd.zikra.data.remote.ZikraApi
+import kotlinx.coroutines.flow.first
 
 class AuthRepository(
     private val api: ZikraApi,
@@ -30,6 +31,15 @@ class AuthRepository(
 
     suspend fun signOut() {
         settings.signOut()
+    }
+
+    suspend fun deleteAccount() {
+        val s = settings.settings.first()
+        if (!s.isSignedIn) return
+        runCatching { api.deleteAccount(s.token) }
+            .getOrElse { throw wrap(it) }
+        frames.wipeLocalUser(s.userId)
+        settings.wipe()
     }
 
     private fun wrap(t: Throwable): Throwable = when (t) {

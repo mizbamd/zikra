@@ -11,6 +11,7 @@
 - [ ] Focused mode: +1, undo, reset today
 - [ ] Hijri date still shows under Gregorian
 - [ ] `./server/run.sh` + `GET /health` still ok (if this PR touches the API)
+- [ ] Signed-in **You → Delete account** removes server data and returns to welcome (if this PR touches accounts)
 
 ## Release
 

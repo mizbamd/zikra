@@ -48,6 +48,12 @@
     <string name="calendar_method">Calendar method</string>
     <string name="umm_al_qura">Umm al-Qura</string>
     <string name="sign_out">Sign out</string>
+    <string name="delete_account">Delete account</string>
+    <string name="delete_account_confirm_title">Delete your account?</string>
+    <string name="delete_account_confirm_body">This permanently deletes your account, dhikr frames, and counts from Zikra’s servers. Local data on this device is wiped. This cannot be undone.</string>
+    <string name="delete_account_confirm">Delete permanently</string>
+    <string name="deleting_account">Deleting account…</string>
+    <string name="cancel">Cancel</string>
     <string name="guest_label">Guest</string>
     <string name="server_down">Can’t reach the Zikra server. Check that it is running, or continue as guest.</string>
     <string name="google_missing">Google Sign-In needs a Web client ID. Add google.web.client.id to local.properties.</string>

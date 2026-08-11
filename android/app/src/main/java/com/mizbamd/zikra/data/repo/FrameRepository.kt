@@ -229,6 +229,11 @@ class FrameRepository(
 
     suspend fun getFrame(id: String): FrameEntity? = frames.get(id)
 
+    suspend fun wipeLocalUser(userId: String) {
+        counts.deleteForUser(userId)
+        frames.deleteForUser(userId)
+    }
+
     suspend fun syncQuietly() {
         runCatching { sync() }
     }

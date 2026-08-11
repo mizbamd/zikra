@@ -30,6 +30,7 @@ import io.ktor.server.response.respond
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.net.URI
 
 fun main() {
     val env = Env.load()
@@ -66,9 +67,21 @@ fun Application.zikraModule(env: Env = Env.load()) {
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Delete)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        anyHost()
+        if (env.corsOrigins.isEmpty()) {
+            anyHost()
+        } else {
+            env.corsOrigins.forEach { raw ->
+                val uri = runCatching { URI(raw) }.getOrNull()
+                if (uri?.host != null) {
+                    allowHost(uri.host, schemes = listOfNotNull(uri.scheme).ifEmpty { listOf("https") })
+                } else {
+                    allowHost(raw.removePrefix("https://").removePrefix("http://"), schemes = listOf("https"))
+                }
+            }
+        }
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->

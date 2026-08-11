@@ -1,0 +1,46 @@
+# Example production stack: API + Postgres 14.
+#   cp server/.env.example .env
+#   # set ZIKRA_ENV=production, JWT_SECRET (long), DATABASE_PASSWORD
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Put a reverse proxy (Caddy) in front for HTTPS. Do not commit .env.
+
+services:
+  postgres:
+    image: postgres:14
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zikra
+      POSTGRES_USER: ${DATABASE_USER:-zikra}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
+    volumes:
+      - zikra_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d zikra"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    expose:
+      - "5432"
+
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/zikra
+      DATABASE_USER: ${DATABASE_USER:-zikra}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
+      HOST: 0.0.0.0
+      PORT: "8080"
+      ZIKRA_ENV: production
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  zikra_pgdata:

@@ -48,6 +48,12 @@
     <string name="calendar_method">طريقة التقويم</string>
     <string name="umm_al_qura">أم القرى</string>
     <string name="sign_out">تسجيل الخروج</string>
+    <string name="delete_account">حذف الحساب</string>
+    <string name="delete_account_confirm_title">حذف حسابك؟</string>
+    <string name="delete_account_confirm_body">سيُحذف حسابك وإطارات الذكر والعدّادات من خوادم ذكرى نهائياً. تُمسح البيانات المحلية على هذا الجهاز. لا يمكن التراجع.</string>
+    <string name="delete_account_confirm">حذف نهائياً</string>
+    <string name="deleting_account">جارٍ حذف الحساب…</string>
+    <string name="cancel">إلغاء</string>
     <string name="guest_label">ضيف</string>
     <string name="server_down">تعذر الوصول إلى خادم ذكرى. تأكد أنه يعمل، أو تابع كضيف.</string>
     <string name="google_missing">تسجيل Google يحتاج معرّف عميل ويب. أضفه في local.properties.</string>
