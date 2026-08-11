@@ -81,8 +81,9 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 }
             }
             SessionMode.SIGNED_IN -> {
-                val inApp = current == "home" || current == "summary" || current == "history" ||
-                    current == "you" || current == "signin" || current.isFocusedOrEdit()
+                // signin/welcome must not count as "in app" or a successful login stays on this screen.
+                val inApp = current == "home" || current == "summary" || current == "you" ||
+                    current.isFocusedOrEdit()
                 if (!inApp) {
                     nav.navigate("home") {
                         popUpTo(nav.graph.id) { inclusive = true }
