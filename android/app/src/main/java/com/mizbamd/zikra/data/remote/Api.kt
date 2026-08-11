@@ -28,6 +28,9 @@ data class AuthResponse(val token: String, val userId: String, val email: String
 data class ErrorBody(val error: String? = null)
 
 @Serializable
+data class Credentials(val email: String, val password: String)
+
+@Serializable
 data class OtpRequestBody(val email: String)
 
 @Serializable
@@ -89,11 +92,17 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
         client.get("$baseUrl/health").status.value == 200
     }.getOrDefault(false)
 
+    suspend fun register(email: String, password: String): AuthResponse =
+        authPost("/v1/auth/register", Credentials(email, password))
+
+    suspend fun login(email: String, password: String): AuthResponse =
+        authPost("/v1/auth/login", Credentials(email, password))
+
     suspend fun requestOtp(email: String) {
         val res = client.post("$baseUrl/v1/auth/otp/request") {
             setBody(OtpRequestBody(email))
         }
-        if (res.status.value !in 200..299) throw ApiException(errorMessage(res))
+        if (res.status.value !in 200..299) throw ApiException(errorMessage(res), res.status.value)
     }
 
     suspend fun verifyOtp(email: String, code: String): AuthResponse {
@@ -123,12 +132,17 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
             header(HttpHeaders.Authorization, "Bearer $token")
         }
         if (res.status.value in 200..299 || res.status.value == 404) return
-        throw ApiException(errorMessage(res))
+        throw ApiException(errorMessage(res), res.status.value)
+    }
+
+    private suspend fun authPost(path: String, body: Credentials): AuthResponse {
+        val res = client.post("$baseUrl$path") { setBody(body) }
+        return parseOrThrow(res)
     }
 
     private suspend inline fun <reified T> parseOrThrow(res: HttpResponse): T {
         if (res.status.value in 200..299) return res.body()
-        throw ApiException(errorMessage(res))
+        throw ApiException(errorMessage(res), res.status.value)
     }
 
     private suspend fun errorMessage(res: HttpResponse): String {
@@ -140,4 +154,4 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
     }
 }
 
-class ApiException(message: String) : Exception(message)
+class ApiException(message: String, val status: Int? = null) : Exception(message)

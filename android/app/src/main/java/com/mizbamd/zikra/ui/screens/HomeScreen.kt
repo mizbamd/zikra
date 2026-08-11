@@ -41,6 +41,7 @@ import com.mizbamd.zikra.ui.theme.Forest
 import com.mizbamd.zikra.ui.theme.ForestDark
 import com.mizbamd.zikra.ui.theme.Gold
 import com.mizbamd.zikra.ui.theme.GoldLight
+import com.mizbamd.zikra.ui.theme.zikraTopCutout
 import com.mizbamd.zikra.util.DisplayDates
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
@@ -80,7 +81,8 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .zikraTopCutout(),
             ) {
                 val scroll = rememberScrollState()
                 val fabClearance = if (canAddFrame) HomeFabClearance else 16.dp

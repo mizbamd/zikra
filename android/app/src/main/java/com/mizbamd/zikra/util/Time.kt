@@ -24,10 +24,8 @@ val SAMPLE_LON = 39.8262
 data class DisplayDates(
     val gregorian: String,
     val hijri: String,
-    val locationLabelKey: LocationLabel,
+    val cityName: String? = null,
 )
-
-enum class LocationLabel { REAL, SAMPLE }
 
 object ZikraTime {
     private val gregorianFmt: DateTimeFormatter =
@@ -53,7 +51,7 @@ object ZikraTime {
     fun displayDates(
         lat: Double,
         lon: Double,
-        hasRealLocation: Boolean,
+        cityName: String? = null,
         zone: ZoneId = ZoneId.systemDefault(),
         now: ZonedDateTime = ZonedDateTime.now(zone),
         locale: Locale = Locale.getDefault(),
@@ -71,7 +69,7 @@ object ZikraTime {
         return DisplayDates(
             gregorian = gDate.format(gFmt),
             hijri = hijrah.format(hFmt),
-            locationLabelKey = if (hasRealLocation) LocationLabel.REAL else LocationLabel.SAMPLE,
+            cityName = cityName?.trim()?.takeIf { it.isNotEmpty() },
         )
     }
 

@@ -50,11 +50,11 @@ android {
 
     buildTypes {
         debug {
-            // Emulator default. Physical device on LAN: api.base.url=http://<lan-ip>:8080
+            // Physical-device default (Fly). Emulator override: api.base.url=http://10.0.2.2:8080
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                buildConfigString(local("api.base.url", "http://10.0.2.2:8080")),
+                buildConfigString(local("api.base.url", "https://zikra-api.fly.dev")),
             )
         }
         release {

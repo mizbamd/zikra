@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
@@ -36,6 +34,7 @@ import com.mizbamd.zikra.ui.components.DhikrCountSurface
 import com.mizbamd.zikra.ui.components.QuietTextButton
 import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.Gold
+import com.mizbamd.zikra.ui.theme.zikraSafeDrawing
 import com.mizbamd.zikra.util.DisplayDates
 import kotlinx.coroutines.delay
 
@@ -65,13 +64,12 @@ fun GuestScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding(),
+            .zikraSafeDrawing(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
                 .padding(horizontal = 8.dp, vertical = 4.dp),
         ) {
             IconButton(onClick = onYou, modifier = Modifier.align(Alignment.CenterEnd)) {

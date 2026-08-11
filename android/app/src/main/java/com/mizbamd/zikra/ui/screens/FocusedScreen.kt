@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Edit
@@ -41,6 +39,7 @@ import com.mizbamd.zikra.ui.components.QuietTextButton
 import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.ForestDark
 import com.mizbamd.zikra.ui.theme.Gold
+import com.mizbamd.zikra.ui.theme.zikraSafeDrawing
 import kotlinx.coroutines.delay
 
 @Composable
@@ -69,14 +68,13 @@ fun FocusedScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(ForestDark)
-            .navigationBarsPadding(),
+            .zikraSafeDrawing(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .zIndex(2f)
-                .statusBarsPadding()
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

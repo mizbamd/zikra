@@ -1,5 +1,6 @@
 package com.mizbamd.zikra.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -7,14 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -23,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,16 +30,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
 import com.mizbamd.zikra.data.local.FrameEntity
+import com.mizbamd.zikra.ui.components.AutoFitDhikrText
 import com.mizbamd.zikra.ui.components.GoldButton
 import com.mizbamd.zikra.ui.components.QuietTextButton
 import com.mizbamd.zikra.ui.theme.Cream
@@ -51,6 +50,7 @@ import com.mizbamd.zikra.ui.theme.GoldLight
 import com.mizbamd.zikra.ui.theme.OnGreen
 import com.mizbamd.zikra.ui.theme.OnGreenTextStyle
 import com.mizbamd.zikra.ui.theme.zikraOnGreenFieldColors
+import com.mizbamd.zikra.ui.theme.zikraSafeDrawing
 import com.mizbamd.zikra.util.DhikrLexicon
 import com.mizbamd.zikra.util.DhikrPair
 
@@ -66,8 +66,6 @@ fun EditFrameScreen(
     var arabic by remember { mutableStateOf(existing?.arabic.orEmpty()) }
     var transliteration by remember { mutableStateOf(existing?.transliteration.orEmpty()) }
     var target by remember { mutableStateOf(existing?.target?.toString().orEmpty()) }
-    var latinSuggesting by remember { mutableStateOf(false) }
-    var arabicSuggesting by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
 
     BackHandler(onBack = onBack)
@@ -76,22 +74,11 @@ fun EditFrameScreen(
         arabic = existing?.arabic.orEmpty()
         transliteration = existing?.transliteration.orEmpty()
         target = existing?.target?.toString().orEmpty()
-        latinSuggesting = false
-        arabicSuggesting = false
-    }
-
-    val latinHits = remember(transliteration, latinSuggesting) {
-        if (latinSuggesting) DhikrLexicon.searchLatin(transliteration) else emptyList()
-    }
-    val arabicHits = remember(arabic, arabicSuggesting) {
-        if (arabicSuggesting) DhikrLexicon.searchArabic(arabic) else emptyList()
     }
 
     fun pick(pair: DhikrPair) {
         arabic = pair.arabic
         transliteration = pair.latin
-        latinSuggesting = false
-        arabicSuggesting = false
     }
 
     val trimmedArabic = arabic.trim()
@@ -104,15 +91,19 @@ fun EditFrameScreen(
         DhikrLexicon.matchPair(trimmedArabic, trimmedLatin)
     }
     val canSave = unchangedExisting || catalogPair != null
+    val catalogHits = remember(trimmedArabic, trimmedLatin, catalogPair) {
+        if (catalogPair != null) DhikrLexicon.allPairs()
+        else DhikrLexicon.browse(trimmedArabic, trimmedLatin)
+    }
 
     val colors = zikraOnGreenFieldColors()
 
     Column(
         Modifier
             .fillMaxSize()
+            .zikraSafeDrawing()
             .imePadding()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
+            .padding(horizontal = 20.dp),
     ) {
         IconButton(onClick = onBack) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back", tint = Cream)
@@ -131,14 +122,10 @@ fun EditFrameScreen(
             )
             return@Column
         }
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(16.dp))
         OutlinedTextField(
             value = arabic,
-            onValueChange = { value ->
-                arabic = value
-                arabicSuggesting = true
-                latinSuggesting = false
-            },
+            onValueChange = { arabic = it },
             label = { Text(stringResource(R.string.arabic), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
@@ -148,28 +135,16 @@ fun EditFrameScreen(
             ),
             colors = colors,
         )
-        if (arabicHits.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            DhikrSuggestionList(items = arabicHits, onPick = ::pick)
-        }
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = transliteration,
-            onValueChange = { value ->
-                transliteration = value
-                latinSuggesting = true
-                arabicSuggesting = false
-            },
+            onValueChange = { transliteration = it },
             label = { Text(stringResource(R.string.transliteration), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             textStyle = OnGreenTextStyle,
             colors = colors,
         )
-        if (latinHits.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            DhikrSuggestionList(items = latinHits, onPick = ::pick)
-        }
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = target,
@@ -181,15 +156,65 @@ fun EditFrameScreen(
             colors = colors,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(12.dp))
         if (!canSave) {
             Text(
                 stringResource(R.string.choose_dhikr_from_list),
                 color = GoldLight,
                 fontSize = 15.sp,
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
         }
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(ForestDark),
+        ) {
+            itemsIndexed(
+                catalogHits,
+                key = { _, pair -> pair.arabic + "\u0000" + pair.latin },
+            ) { index, pair ->
+                if (index > 0) {
+                    Spacer(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(Gold.copy(alpha = 0.18f)),
+                    )
+                }
+                val selected = catalogPair != null &&
+                    pair.arabic == catalogPair.arabic &&
+                    pair.latin == catalogPair.latin
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(if (selected) Gold.copy(alpha = 0.12f) else Color.Transparent)
+                        .clickable { pick(pair) }
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                ) {
+                    AutoFitDhikrText(
+                        text = pair.arabic,
+                        color = Cream,
+                        textAlign = TextAlign.Start,
+                        maxFontSize = 18.sp,
+                        minFontSize = 14.sp,
+                        lineHeightRatio = 26f / 18f,
+                        maxLinesBeforeScale = 6,
+                    )
+                    Text(
+                        pair.latin,
+                        color = GoldLight,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        softWrap = true,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(16.dp))
         GoldButton(stringResource(R.string.save), onClick = {
             val preserved = currentExisting.takeIf { unchangedExisting }
             when {
@@ -202,6 +227,7 @@ fun EditFrameScreen(
         if (onDelete != null) {
             QuietTextButton(stringResource(R.string.delete), onClick = { confirmDelete = true })
         }
+        Spacer(Modifier.height(8.dp))
     }
     if (confirmDelete && onDelete != null) {
         AlertDialog(
@@ -222,56 +248,5 @@ fun EditFrameScreen(
                 }
             },
         )
-    }
-}
-
-@Composable
-private fun DhikrSuggestionList(
-    items: List<DhikrPair>,
-    onPick: (DhikrPair) -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(max = 240.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(ForestDark)
-            .verticalScroll(rememberScrollState()),
-    ) {
-        items.forEachIndexed { index, pair ->
-            if (index > 0) {
-                Spacer(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Gold.copy(alpha = 0.18f)),
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onPick(pair) }
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-            ) {
-                Text(
-                    pair.arabic,
-                    color = Cream,
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    pair.latin,
-                    color = GoldLight,
-                    fontSize = 13.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-            }
-        }
     }
 }
