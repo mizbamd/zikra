@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +44,12 @@ import com.mizbamd.zikra.ui.theme.GoldLight
 import com.mizbamd.zikra.util.DisplayDates
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+
+/** Default M3 FAB; last plaque must sit fully above this. Account cap stays 10. */
+private val HomeFabSize = 56.dp
+private val HomeFabEdgePadding = 16.dp
+private val HomeFabListGap = 16.dp
+private val HomeFabClearance = HomeFabSize + HomeFabEdgePadding + HomeFabListGap
 
 @Composable
 fun HomeScreen(
@@ -77,12 +83,14 @@ fun HomeScreen(
                     .fillMaxWidth(),
             ) {
                 val scroll = rememberScrollState()
+                val fabClearance = if (canAddFrame) HomeFabClearance else 16.dp
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(bottom = fabClearance)
                         .verticalScroll(scroll)
                         .padding(horizontal = 16.dp)
-                        .padding(top = 12.dp, bottom = 24.dp),
+                        .padding(top = 12.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     DateHeader(dates, streakDays = streakDays)
@@ -107,36 +115,35 @@ fun HomeScreen(
                             onArabic = { onFocus(item.frame.id) },
                         )
                     }
-                    Spacer(Modifier.height(88.dp))
                 }
-                HomeScrollbar(scroll)
+                HomeScrollbar(scroll, bottomInset = fabClearance)
+                if (canAddFrame) {
+                    FloatingActionButton(
+                        onClick = onAdd,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = HomeFabEdgePadding, bottom = HomeFabEdgePadding),
+                        containerColor = Gold,
+                        contentColor = ForestDark,
+                    ) {
+                        Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.add_frame))
+                    }
+                }
             }
             bottomBar()
-        }
-        if (canAddFrame) {
-            FloatingActionButton(
-                onClick = onAdd,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 72.dp),
-                containerColor = Gold,
-                contentColor = ForestDark,
-            ) {
-                Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.add_frame))
-            }
         }
     }
 }
 
 @Composable
-private fun BoxScope.HomeScrollbar(scroll: ScrollState) {
+private fun BoxScope.HomeScrollbar(scroll: ScrollState, bottomInset: Dp) {
     val density = LocalDensity.current
     BoxWithConstraints(
         modifier = Modifier
             .align(Alignment.CenterEnd)
             .fillMaxHeight()
             .width(8.dp)
-            .padding(end = 2.dp, top = 8.dp, bottom = 8.dp),
+            .padding(end = 2.dp, top = 8.dp, bottom = bottomInset),
     ) {
         val viewportPx = constraints.maxHeight.toFloat()
         val maxPx = scroll.maxValue.toFloat()

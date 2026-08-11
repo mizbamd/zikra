@@ -30,6 +30,26 @@ object DhikrLexicon {
     private var byLatin: Map<String, DhikrPair> = emptyMap()
     private var byArabic: Map<String, DhikrPair> = emptyMap()
 
+    /** Short catalog duas shown one-per-day on Summary. Not user-typed. */
+    private val dailyDuas = listOf(
+        DhikrPair("رب اغفر لي", "Rabbighfir li"),
+        DhikrPair("رب زدني علما", "Rabbi zidni ilma"),
+        DhikrPair("اللهم يسر", "Allahumma yassir"),
+        DhikrPair("حسبي الله ونعم الوكيل", "Hasbiyallahu wa ni'mal wakeel"),
+        DhikrPair("ربنا تقبل منا", "Rabbana taqabbal minna"),
+        DhikrPair("اللهم اهدني", "Allahumma ihdini"),
+        DhikrPair("اللهم إني أسألك العافية", "Allahumma inni as'alukal afiyah"),
+        DhikrPair("توكلت على الله", "Tawakkaltu alallah"),
+        DhikrPair("رب اشرح لي صدري", "Rabbi ishrah li sadri"),
+        DhikrPair("يا أرحم الراحمين", "Ya arhamar-rahimin"),
+    )
+
+    fun duaForDay(dayOfYear: Int): DhikrPair {
+        val size = dailyDuas.size
+        val index = dayOfYear.mod(size)
+        return dailyDuas[index]
+    }
+
     fun loadFromJson(raw: String) {
         catalog = json.decodeFromString<List<DhikrCatalogEntry>>(raw)
         byLatin = buildMap {
