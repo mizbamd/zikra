@@ -33,6 +33,7 @@ import com.mizbamd.zikra.ui.theme.ForestDark
 import com.mizbamd.zikra.ui.theme.Gold
 import com.mizbamd.zikra.ui.theme.GoldLight
 import com.mizbamd.zikra.ui.theme.Ink
+import com.mizbamd.zikra.ui.theme.OnGreen
 import com.mizbamd.zikra.util.DisplayDates
 import com.mizbamd.zikra.util.LocationLabel
 
@@ -139,9 +140,19 @@ fun GoldButton(
         enabled = enabled,
         modifier = modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = ForestDark),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Gold,
+            contentColor = ForestDark,
+            disabledContainerColor = Gold.copy(alpha = 0.28f),
+            disabledContentColor = OnGreen,
+        ),
     ) {
-        Text(text, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Text(
+            text,
+            color = if (enabled) ForestDark else OnGreen,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.sp,
+        )
     }
 }
 
