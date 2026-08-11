@@ -16,11 +16,14 @@ import com.mizbamd.zikra.data.repo.AuthRepository
 import com.mizbamd.zikra.data.repo.FrameRepository
 import com.mizbamd.zikra.data.repo.FrameToday
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
+import com.mizbamd.zikra.notify.DailyReminder
+import com.mizbamd.zikra.util.CountTick
 import com.mizbamd.zikra.util.SAMPLE_LAT
 import com.mizbamd.zikra.util.SAMPLE_LON
 import com.mizbamd.zikra.util.VolumeUpBus
 import com.mizbamd.zikra.util.ZikraTime
 import com.mizbamd.zikra.util.tapHaptic
+import com.mizbamd.zikra.util.targetHaptic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,6 +44,7 @@ data class UiState(
     val doneFrameId: String? = null,
     val maxFrames: Int = FrameLimitPolicy.DEFAULT_MAX_FRAMES,
     val canAddFrame: Boolean = true,
+    val streakDays: Int = 0,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -81,6 +85,11 @@ class ZikraViewModel(
     ) { settings: Settings, today: List<FrameToday>, history: List<DailyCountEntity>, bits: Triple<String?, Boolean, String?> ->
         val signedIn = settings.mode == SessionMode.SIGNED_IN
         val maxFrames = FrameLimitPolicy.maxFramesFor(signedIn)
+        val todayKey = ZikraTime.todayKey(
+            settings.resetAt,
+            settings.lat ?: SAMPLE_LAT,
+            settings.lon ?: SAMPLE_LON,
+        )
         UiState(
             settings = settings,
             frames = today,
@@ -90,6 +99,11 @@ class ZikraViewModel(
             doneFrameId = bits.third,
             maxFrames = maxFrames,
             canAddFrame = FrameLimitPolicy.canAdd(today.size, signedIn),
+            streakDays = settings.streakToShow(
+                userId = settings.userId,
+                today = todayKey,
+                onlyIfCountedToday = settings.mode == SessionMode.GUEST,
+            ),
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, UiState())
 
@@ -112,14 +126,42 @@ class ZikraViewModel(
                 if (state.value.settings.volumeUpIncrement) increment(frameId)
             }
         }
+        viewModelScope.launch { frames.pruneOldCounts() }
+        viewModelScope.launch {
+            val s = settingsStore.settings.first()
+            DailyReminder.apply(
+                getApplication(),
+                s.reminderEnabled,
+                s.reminderHour,
+                s.reminderMinute,
+            )
+        }
     }
 
     fun increment(frameId: String) {
         viewModelScope.launch {
             val s = state.value.settings
-            if (s.haptics) getApplication<Application>().tapHaptic()
+            val current = state.value.frames.firstOrNull { it.frame.id == frameId }
+            val willHitTarget = current?.target != null && current.todayCount + 1 == current.target
+            // Skip the short click when completing a target so it does not stack on the 2s buzz.
+            if (s.haptics) {
+                if (willHitTarget) getApplication<Application>().targetHaptic()
+                else getApplication<Application>().tapHaptic()
+            }
+            if (s.tickSound) CountTick.play()
             val result = frames.increment(s.userId, frameId)
-            if (result?.justHitTarget == true) doneFrameId.value = frameId
+            if (result?.justHitTarget == true) {
+                doneFrameId.value = frameId
+                if (s.haptics && !willHitTarget) getApplication<Application>().targetHaptic()
+            }
+            if (result != null && result.todayCount == 1) {
+                val today = ZikraTime.todayKey(
+                    s.resetAt,
+                    s.lat ?: SAMPLE_LAT,
+                    s.lon ?: SAMPLE_LON,
+                )
+                settingsStore.recordDailyCount(s.userId, today)
+            }
         }
     }
 
@@ -133,6 +175,10 @@ class ZikraViewModel(
 
     fun resetToday(frameId: String) {
         viewModelScope.launch { frames.resetToday(state.value.settings.userId, frameId) }
+    }
+
+    fun resetLifetime(frameId: String) {
+        viewModelScope.launch { frames.resetLifetime(state.value.settings.userId, frameId) }
     }
 
     fun continueGuest() {
@@ -152,6 +198,7 @@ class ZikraViewModel(
     }
 
     fun deleteAccount() = authenticate {
+        DailyReminder.cancel(getApplication())
         auth.deleteAccount()
     }
 
@@ -169,8 +216,21 @@ class ZikraViewModel(
 
     fun setHaptics(v: Boolean) = viewModelScope.launch { settingsStore.setHaptics(v) }
     fun setVolumeUp(v: Boolean) = viewModelScope.launch { settingsStore.setVolumeUp(v) }
+    fun setTickSound(v: Boolean) = viewModelScope.launch { settingsStore.setTickSound(v) }
     fun setResetAt(v: ResetAt) = viewModelScope.launch { settingsStore.setResetAt(v) }
     fun setLocationEnabled(v: Boolean) = viewModelScope.launch { settingsStore.setLocationEnabled(v) }
+
+    fun setReminderEnabled(v: Boolean) = viewModelScope.launch {
+        settingsStore.setReminderEnabled(v)
+        val s = settingsStore.settings.first()
+        DailyReminder.apply(getApplication(), v, s.reminderHour, s.reminderMinute)
+    }
+
+    fun setReminderTime(hour: Int, minute: Int) = viewModelScope.launch {
+        settingsStore.setReminderTime(hour, minute)
+        val s = settingsStore.settings.first()
+        DailyReminder.apply(getApplication(), s.reminderEnabled, hour, minute)
+    }
 
     fun setLanguage(tag: String) {
         viewModelScope.launch {

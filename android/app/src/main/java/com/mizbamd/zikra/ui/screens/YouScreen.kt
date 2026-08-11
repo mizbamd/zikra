@@ -2,10 +2,14 @@ package com.mizbamd.zikra.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.TimePickerDialog
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.os.Build
+import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +54,7 @@ import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.Forest
 import com.mizbamd.zikra.ui.theme.Gold
 import com.mizbamd.zikra.ui.theme.GoldLight
+import java.util.Calendar
 
 /**
  * Approximate (COARSE) location only. Sunset / Hijri math is insensitive to ~1–3 km error,
@@ -106,6 +111,9 @@ fun YouScreen(
     authError: String? = null,
     onHaptics: (Boolean) -> Unit,
     onVolumeUp: (Boolean) -> Unit,
+    onTickSound: (Boolean) -> Unit = {},
+    onReminderEnabled: (Boolean) -> Unit = {},
+    onReminderTime: (Int, Int) -> Unit = { _, _ -> },
     onResetAt: (ResetAt) -> Unit,
     onLanguage: (String) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
@@ -116,6 +124,12 @@ fun YouScreen(
     bottomBar: @Composable () -> Unit,
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val notifLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        onReminderEnabled(granted)
+    }
     val chipColors = FilterChipDefaults.filterChipColors(
         selectedContainerColor = Gold,
         selectedLabelColor = Forest,
@@ -147,7 +161,46 @@ fun YouScreen(
             Spacer(Modifier.height(24.dp))
 
             SettingRow(stringResource(R.string.haptics), settings.haptics, onHaptics)
+            SettingRow(stringResource(R.string.tick_sound), settings.tickSound, onTickSound)
             SettingRow(stringResource(R.string.volume_up), settings.volumeUpIncrement, onVolumeUp)
+            SettingRow(stringResource(R.string.daily_reminder), settings.reminderEnabled) { enable ->
+                if (!enable) {
+                    onReminderEnabled(false)
+                } else if (
+                    Build.VERSION.SDK_INT >= 33 &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    onReminderEnabled(true)
+                }
+            }
+            if (settings.reminderEnabled) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            TimePickerDialog(
+                                context,
+                                { _, hour, minute -> onReminderTime(hour, minute) },
+                                settings.reminderHour,
+                                settings.reminderMinute,
+                                DateFormat.is24HourFormat(context),
+                            ).show()
+                        }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.reminder_time),
+                        color = Cream,
+                        modifier = Modifier.weight(1f),
+                        fontSize = 16.sp,
+                    )
+                    Text(formatReminderTime(context, settings.reminderHour, settings.reminderMinute), color = Gold)
+                }
+            }
             SettingRow(stringResource(R.string.location), settings.locationEnabled, onLocationEnabled)
 
             Spacer(Modifier.height(16.dp))
@@ -238,6 +291,14 @@ fun YouScreen(
             },
         )
     }
+}
+
+private fun formatReminderTime(context: android.content.Context, hour: Int, minute: Int): String {
+    val cal = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hour)
+        set(Calendar.MINUTE, minute)
+    }
+    return DateFormat.getTimeFormat(context).format(cal.time)
 }
 
 @Composable

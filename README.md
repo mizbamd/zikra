@@ -17,9 +17,12 @@ CI: `.github/workflows/ci.yml` runs `server/gradlew test` on pull requests. It d
   - الله أكبر Allahu Akbar · 34
   - أستغفر الله Astaghfirullah · 100
 - Tap the number on a frame to increment. Tap the Arabic to open Focused (full-screen bead).
-- Undo, reset today, optional volume-up +1 in Focused, haptics on tap.
+- Undo, reset today, optional volume-up +1 in Focused, haptics on tap. Optional tick sound (off by default).
 - Daily count + lifetime. Optional target. Quiet “Done” when the target is hit. No auto-advance.
 - Dates: Gregorian, Hijri (Umm al-Qura) underneath, then “Based on your location”. Hijri rolls at sunset when location is available; otherwise a Makkah sample location is used.
+- Optional daily reminder (off by default). Pick a time on **You**; an inexact alarm shows a local notification that opens home. No exact-alarm permission.
+- Quiet streak under the date (days in a row with at least one count). Guest sees it only after counting today.
+- History grouped by day with per-frame counts. Share a CSV from the device (no cloud). Local `DailyCount` rows older than **24 months** are pruned on launch and after sync (`HistoryRetention.RETENTION_MONTHS`).
 
 ## Layout
 

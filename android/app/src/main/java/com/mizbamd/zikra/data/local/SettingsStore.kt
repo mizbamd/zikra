@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import java.time.LocalDate
 import androidx.datastore.preferences.core.Preferences.Key
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -31,9 +33,25 @@ data class Settings(
     val lat: Double? = null,
     val lon: Double? = null,
     val hasRealLocation: Boolean = false,
+    val tickSound: Boolean = false,
+    val reminderEnabled: Boolean = false,
+    val reminderHour: Int = 8,
+    val reminderMinute: Int = 0,
+    val streakCount: Int = 0,
+    val lastCountDate: String = "",
+    val streakUserId: String = "",
 ) {
     val isSignedIn: Boolean get() = mode == SessionMode.SIGNED_IN && token.isNotBlank()
     val isGuest: Boolean get() = mode == SessionMode.GUEST
+
+    fun streakToShow(userId: String, today: String, onlyIfCountedToday: Boolean): Int {
+        if (streakUserId != userId || streakCount <= 0 || lastCountDate.isBlank()) return 0
+        val yesterday = runCatching { LocalDate.parse(today).minusDays(1).toString() }.getOrDefault("")
+        val alive = lastCountDate == today || lastCountDate == yesterday
+        if (!alive) return 0
+        if (onlyIfCountedToday && lastCountDate != today) return 0
+        return streakCount
+    }
 }
 
 const val GUEST_USER_ID = "guest"
@@ -75,9 +93,33 @@ class SettingsStore(private val context: Context) {
 
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[Keys.haptics] = value }
     suspend fun setVolumeUp(value: Boolean) = context.dataStore.edit { it[Keys.volumeUp] = value }
+    suspend fun setTickSound(value: Boolean) = context.dataStore.edit { it[Keys.tickSound] = value }
+    suspend fun setReminderEnabled(value: Boolean) = context.dataStore.edit { it[Keys.reminderEnabled] = value }
+    suspend fun setReminderTime(hour: Int, minute: Int) = context.dataStore.edit {
+        it[Keys.reminderHour] = hour.coerceIn(0, 23)
+        it[Keys.reminderMinute] = minute.coerceIn(0, 59)
+    }
     suspend fun setResetAt(value: ResetAt) = context.dataStore.edit { it[Keys.resetAt] = value.name }
     suspend fun setLanguage(value: String) = context.dataStore.edit { it[Keys.lang] = value }
     suspend fun setLocationEnabled(value: Boolean) = context.dataStore.edit { it[Keys.location] = value }
+
+    suspend fun recordDailyCount(userId: String, today: String) {
+        context.dataStore.edit { prefs ->
+            val lastUser = prefs[Keys.streakUserId].orEmpty()
+            val lastDate = prefs[Keys.lastCountDate].orEmpty()
+            val prev = prefs[Keys.streakCount] ?: 0
+            val yesterday = runCatching { LocalDate.parse(today).minusDays(1).toString() }.getOrDefault("")
+            val next = when {
+                lastUser != userId -> 1
+                lastDate == today -> prev.coerceAtLeast(1)
+                lastDate == yesterday -> prev + 1
+                else -> 1
+            }
+            prefs[Keys.streakUserId] = userId
+            prefs[Keys.lastCountDate] = today
+            prefs[Keys.streakCount] = next
+        }
+    }
 
     suspend fun setLocation(lat: Double, lon: Double, real: Boolean) {
         context.dataStore.edit {
@@ -101,10 +143,18 @@ class SettingsStore(private val context: Context) {
         val lat: Key<Double> = doublePreferencesKey("lat")
         val lon: Key<Double> = doublePreferencesKey("lon")
         val hasRealLocation: Key<Boolean> = booleanPreferencesKey("hasRealLocation")
+        val tickSound: Key<Boolean> = booleanPreferencesKey("tickSound")
+        val reminderEnabled: Key<Boolean> = booleanPreferencesKey("reminderEnabled")
+        val reminderHour: Key<Int> = intPreferencesKey("reminderHour")
+        val reminderMinute: Key<Int> = intPreferencesKey("reminderMinute")
+        val streakCount: Key<Int> = intPreferencesKey("streakCount")
+        val lastCountDate: Key<String> = stringPreferencesKey("lastCountDate")
+        val streakUserId: Key<String> = stringPreferencesKey("streakUserId")
     }
 
     private fun Preferences.str(key: Key<String>, default: String): String = this[key] ?: default
     private fun Preferences.bool(key: Key<Boolean>, default: Boolean): Boolean = this[key] ?: default
+    private fun Preferences.int(key: Key<Int>, default: Int): Int = this[key] ?: default
 
     private fun Preferences.toSettings() = Settings(
         mode = runCatching { SessionMode.valueOf(str(Keys.mode, SessionMode.WELCOME.name)) }
@@ -122,5 +172,12 @@ class SettingsStore(private val context: Context) {
         lat = this[Keys.lat],
         lon = this[Keys.lon],
         hasRealLocation = bool(Keys.hasRealLocation, false),
+        tickSound = bool(Keys.tickSound, false),
+        reminderEnabled = bool(Keys.reminderEnabled, false),
+        reminderHour = int(Keys.reminderHour, 8).coerceIn(0, 23),
+        reminderMinute = int(Keys.reminderMinute, 0).coerceIn(0, 59),
+        streakCount = int(Keys.streakCount, 0),
+        lastCountDate = str(Keys.lastCountDate, ""),
+        streakUserId = str(Keys.streakUserId, ""),
     )
 }

@@ -14,12 +14,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,6 +68,9 @@ fun EditFrameScreen(
     var target by remember { mutableStateOf(existing?.target?.toString().orEmpty()) }
     var latinSuggesting by remember { mutableStateOf(false) }
     var arabicSuggesting by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+
+    BackHandler(onBack = onBack)
 
     LaunchedEffect(existing?.id) {
         arabic = existing?.arabic.orEmpty()
@@ -135,7 +142,10 @@ fun EditFrameScreen(
             label = { Text(stringResource(R.string.arabic), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
-            textStyle = OnGreenTextStyle,
+            textStyle = OnGreenTextStyle.copy(
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+            ),
             colors = colors,
         )
         if (arabicHits.isNotEmpty()) {
@@ -190,8 +200,28 @@ fun EditFrameScreen(
             }
         }, enabled = canSave)
         if (onDelete != null) {
-            QuietTextButton(stringResource(R.string.delete), onClick = onDelete)
+            QuietTextButton(stringResource(R.string.delete), onClick = { confirmDelete = true })
         }
+    }
+    if (confirmDelete && onDelete != null) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text(stringResource(R.string.delete_frame_confirm_title)) },
+            text = { Text(stringResource(R.string.delete_frame_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    onDelete()
+                }) {
+                    Text(stringResource(R.string.delete), color = Color(0xFFB54A4A))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 }
 
@@ -228,7 +258,7 @@ private fun DhikrSuggestionList(
                     color = Cream,
                     fontSize = 18.sp,
                     fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Start,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,

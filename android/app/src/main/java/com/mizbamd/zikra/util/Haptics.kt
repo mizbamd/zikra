@@ -8,19 +8,30 @@ import android.os.VibratorManager
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-fun Context.tapHaptic() {
-    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val mgr = getSystemService(VibratorManager::class.java)
-        mgr.defaultVibrator
+private fun Context.systemVibrator(): Vibrator {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        getSystemService(VibratorManager::class.java).defaultVibrator
     } else {
         @Suppress("DEPRECATION")
         getSystemService(Vibrator::class.java)
     }
+}
+
+fun Context.tapHaptic() {
+    val vibrator = systemVibrator()
+    if (!vibrator.hasVibrator()) return
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
     } else {
         vibrator.vibrate(VibrationEffect.createOneShot(18, VibrationEffect.DEFAULT_AMPLITUDE))
     }
+}
+
+/** One-shot 2s buzz when today's count reaches the frame target. minSdk 26. */
+fun Context.targetHaptic() {
+    val vibrator = systemVibrator()
+    if (!vibrator.hasVibrator()) return
+    vibrator.vibrate(VibrationEffect.createOneShot(2000, VibrationEffect.DEFAULT_AMPLITUDE))
 }
 
 /**

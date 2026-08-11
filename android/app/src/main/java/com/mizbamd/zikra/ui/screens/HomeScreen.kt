@@ -52,6 +52,7 @@ fun HomeScreen(
     doneFrameId: String?,
     canAddFrame: Boolean,
     maxFrames: Int,
+    streakDays: Int = 0,
     onCount: (String) -> Unit,
     onFocus: (String) -> Unit,
     onAdd: () -> Unit,
@@ -84,7 +85,7 @@ fun HomeScreen(
                         .padding(top = 12.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    DateHeader(dates)
+                    DateHeader(dates, streakDays = streakDays)
                     if (!canAddFrame) {
                         Text(
                             stringResource(R.string.frame_limit_reached, maxFrames),
@@ -140,14 +141,14 @@ private fun BoxScope.HomeScrollbar(scroll: ScrollState) {
         val viewportPx = constraints.maxHeight.toFloat()
         val maxPx = scroll.maxValue.toFloat()
         val canScroll = maxPx > 0f
-        val track = Gold.copy(alpha = if (canScroll) 0.35f else 0.16f)
+        val track = Gold.copy(alpha = if (canScroll) 0.18f else 0.08f)
         val shape = RoundedCornerShape(99.dp)
 
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .fillMaxHeight()
-                .width(3.dp)
+                .width(4.dp)
                 .clip(shape)
                 .background(track),
         )
@@ -166,7 +167,7 @@ private fun BoxScope.HomeScrollbar(scroll: ScrollState) {
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .offset { IntOffset(0, thumbOffsetPx) }
-                    .width(3.dp)
+                    .width(4.dp)
                     .height(with(density) { thumbHeightPx.toDp() })
                     .clip(shape)
                     .background(Gold),
