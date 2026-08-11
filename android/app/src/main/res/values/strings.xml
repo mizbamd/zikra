@@ -27,6 +27,7 @@
     <string name="based_on_location">Based on your location</string>
     <string name="sample_location">Using sample location (Makkah)</string>
     <string name="add_frame">Add dhikr</string>
+    <string name="frame_limit_reached">You can have up to %d dhikr for now</string>
     <string name="edit_frame">Edit dhikr</string>
     <string name="arabic">Arabic</string>
     <string name="transliteration">Transliteration</string>

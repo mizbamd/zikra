@@ -34,6 +34,8 @@ fun HomeScreen(
     dates: DisplayDates,
     frames: List<FrameToday>,
     doneFrameId: String?,
+    canAddFrame: Boolean,
+    maxFrames: Int,
     onCount: (String) -> Unit,
     onFocus: (String) -> Unit,
     onAdd: () -> Unit,
@@ -50,8 +52,10 @@ fun HomeScreen(
         containerColor = Forest,
         bottomBar = bottomBar,
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd, containerColor = Gold, contentColor = ForestDark) {
-                Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.add_frame))
+            if (canAddFrame) {
+                FloatingActionButton(onClick = onAdd, containerColor = Gold, contentColor = ForestDark) {
+                    Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.add_frame))
+                }
             }
         },
     ) { padding ->
@@ -69,6 +73,15 @@ fun HomeScreen(
         ) {
             item(key = "date-header") {
                 DateHeader(dates)
+            }
+            if (!canAddFrame) {
+                item(key = "frame-limit") {
+                    Text(
+                        stringResource(R.string.frame_limit_reached, maxFrames),
+                        color = GoldLight,
+                        fontSize = 15.sp,
+                    )
+                }
             }
             if (doneFrameId != null) {
                 item(key = "done-quiet") {

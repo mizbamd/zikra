@@ -12,6 +12,7 @@ import com.mizbamd.zikra.data.remote.DailyCountDto
 import com.mizbamd.zikra.data.remote.FrameDto
 import com.mizbamd.zikra.data.remote.SyncPushRequest
 import com.mizbamd.zikra.data.remote.ZikraApi
+import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.util.Defaults
 import com.mizbamd.zikra.util.SAMPLE_LAT
 import com.mizbamd.zikra.util.SAMPLE_LON
@@ -77,7 +78,11 @@ class FrameRepository(
             val matches = existing.filter { it.arabic.trim() == def.arabic && it.id !in claimed }
             if (matches.isEmpty()) {
                 val stable = existing.find { it.id == Defaults.frameId(userId, def.key) }
-                if (stable == null) frames.upsert(Defaults.toEntity(def, userId, index))
+                if (stable == null &&
+                    FrameLimitPolicy.canAdd(frames.countActive(userId), signedIn = true)
+                ) {
+                    frames.upsert(Defaults.toEntity(def, userId, index))
+                }
                 return@forEachIndexed
             }
             val keep = matches.maxWith(
@@ -168,6 +173,8 @@ class FrameRepository(
     ) {
         val now = ZikraTime.nowIso()
         if (id == null) {
+            val signedIn = userId != GUEST_USER_ID
+            if (!FrameLimitPolicy.canAdd(frames.countActive(userId), signedIn)) return
             val order = frames.listActive(userId).size
             frames.upsert(
                 FrameEntity(

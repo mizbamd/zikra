@@ -163,9 +163,13 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 dates = vm.displayDates(),
                 frames = state.frames,
                 doneFrameId = state.doneFrameId,
+                canAddFrame = state.canAddFrame,
+                maxFrames = state.maxFrames,
                 onCount = vm::increment,
                 onFocus = { nav.navigate("focused/$it") },
-                onAdd = { nav.navigate("edit/new") },
+                onAdd = {
+                    if (state.canAddFrame) nav.navigate("edit/new")
+                },
                 onClearDone = vm::clearDone,
                 bottomBar = { Bottom("home") },
             )
@@ -229,6 +233,8 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
             }
             EditFrameScreen(
                 existing = existing,
+                atLimit = id == null && !state.canAddFrame,
+                maxFrames = state.maxFrames,
                 onSave = { arabic, transliteration, target ->
                     vm.saveFrame(id, arabic, transliteration, target)
                     nav.popBackStack()

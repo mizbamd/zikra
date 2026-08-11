@@ -11,6 +11,7 @@ data class DefaultFrame(
 )
 
 object Defaults {
+    /** Seeded signed-in dhikr. Must stay under [com.mizbamd.zikra.entitlements.FrameLimitPolicy.DEFAULT_MAX_FRAMES]. */
     val signedIn = listOf(
         DefaultFrame("subhan", "سبحان الله", "SubhanAllah", 33),
         DefaultFrame("hamd", "الحمد لله", "Alhamdulillah", 33),

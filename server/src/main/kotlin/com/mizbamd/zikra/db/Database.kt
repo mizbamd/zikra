@@ -36,6 +36,22 @@ class Database(env: Env) {
 
     fun <T> withConnection(block: Connection.() -> T): T =
         dataSource.connection.use { it.block() }
+
+    fun <T> withTransaction(block: Connection.() -> T): T =
+        dataSource.connection.use { conn ->
+            val previous = conn.autoCommit
+            conn.autoCommit = false
+            try {
+                val result = conn.block()
+                conn.commit()
+                result
+            } catch (t: Throwable) {
+                conn.rollback()
+                throw t
+            } finally {
+                runCatching { conn.autoCommit = previous }
+            }
+        }
 }
 
 fun Connection.query(sql: String, vararg params: Any?, map: (ResultSet) -> Unit) {

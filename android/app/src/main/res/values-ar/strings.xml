@@ -27,6 +27,7 @@
     <string name="based_on_location">حسب موقعك</string>
     <string name="sample_location">باستخدام موقع تجريبي (مكة)</string>
     <string name="add_frame">إضافة ذكر</string>
+    <string name="frame_limit_reached">يمكنك الاحتفاظ بما يصل إلى %d أذكار حالياً</string>
     <string name="edit_frame">تعديل الذكر</string>
     <string name="arabic">العربية</string>
     <string name="transliteration">النطق</string>

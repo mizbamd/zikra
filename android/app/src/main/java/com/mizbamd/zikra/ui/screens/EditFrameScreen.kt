@@ -53,6 +53,8 @@ import com.mizbamd.zikra.util.DhikrPair
 @Composable
 fun EditFrameScreen(
     existing: FrameEntity?,
+    atLimit: Boolean = false,
+    maxFrames: Int = 10,
     onSave: (arabic: String, transliteration: String, target: Int?) -> Unit,
     onDelete: (() -> Unit)?,
     onBack: () -> Unit,
@@ -102,6 +104,15 @@ fun EditFrameScreen(
             color = Cream,
             fontSize = 24.sp,
         )
+        if (existing == null && atLimit) {
+            Spacer(Modifier.height(20.dp))
+            Text(
+                stringResource(R.string.frame_limit_reached, maxFrames),
+                color = GoldLight,
+                fontSize = 16.sp,
+            )
+            return@Column
+        }
         Spacer(Modifier.height(20.dp))
         OutlinedTextField(
             value = arabic,
