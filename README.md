@@ -6,7 +6,7 @@ Guest can count without an account. Signed-in users get independent **frames** (
 
 **GitHub:** private repo [mizbamd/zikra](https://github.com/mizbamd/zikra). Baseline tag **v0.1.0**. After that, every change (and every release) goes through a pull request into `main` — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-GitHub Actions / CI is **not** in this repo yet — add it in a day or two for daily API + APK builds.
+CI: `.github/workflows/ci.yml` runs `server/gradlew test` on pull requests. It does **not** deploy or upload a Play AAB. Production API: [docs/DEPLOY.md](docs/DEPLOY.md). Play listing: [docs/PLAY_STORE.md](docs/PLAY_STORE.md). Privacy policy (host before publish): [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Product (v1)
 
@@ -52,11 +52,14 @@ Flyway runs on startup.
 | `DATABASE_URL` | `jdbc:postgresql://localhost:5432/zikra` |
 | `DATABASE_USER` | your macOS user (`samreen`) |
 | `DATABASE_PASSWORD` | empty (Homebrew peer/trust) |
-| `JWT_SECRET` | change before any shared deploy |
+| `JWT_SECRET` | change before any shared deploy; ≥ 32 random chars when `ZIKRA_ENV=production` |
 | `PORT` | `8080` |
-| `GOOGLE_WEB_CLIENT_ID` | unset — Google Sign-In is a stub in v1 |
+| `HOST` | `0.0.0.0` |
+| `ZIKRA_ENV` | unset locally; `production` rejects the local JWT default |
+| `CORS_ORIGINS` | optional allow-list; empty = any origin |
+| `GOOGLE_WEB_CLIENT_ID` | unset — Google Sign-In is a stub in v1 (button stays hidden) |
 
-Auth: `POST /v1/auth/register` and `POST /v1/auth/login` with `{ "email", "password" }` (password 8+ chars). Sync: `GET/POST /v1/sync` with `Authorization: Bearer <jwt>`.
+Auth: `POST /v1/auth/register` and `POST /v1/auth/login` with `{ "email", "password" }` (password 8+ chars). Sync: `GET/POST /v1/sync` with `Authorization: Bearer <jwt>`. Account deletion: `DELETE /v1/account` (or `POST /v1/account/delete`) with the same Bearer token — used by **You → Delete account**. JWTs expire after 14 days; production is HTTPS only (Fly or Caddy).
 
 ## Run the Android app
 
@@ -76,6 +79,7 @@ cd android
 Guest mode works with the server off. Sign-in shows a clear error if the API is down.
 
 Google Sign-In: add `google.web.client.id=...` to `android/local.properties` when you have a Web client ID. Until then the button explains that it is not configured.
+
 
 ## Play / release binaries
 
@@ -121,6 +125,11 @@ When CI is added:
 3. Keep the phone **offline-first**: Room is source of truth; sync is best-effort after writes.
 
 Do not put secrets in GitHub Actions until the private repo and environments exist.
+=======
+## Production API
+
+See **[docs/DEPLOY.md](docs/DEPLOY.md)**. Default path is Fly.io (`fly.toml`) or a $5 VPS with Caddy + `docker-compose.prod.yml`. Point a later domain at `https://api.zikra.app` and set Android release `api.base.url` to that HTTPS URL. Daily `pg_dump` is documented there; CI does not upload Play AABs.
+
 
 ## Brand
 

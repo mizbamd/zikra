@@ -49,6 +49,13 @@ class UserRepo(private val db: Database) {
         ) { it.toUser() } ?: error("insert user failed")
     }
 
+    /** Permanently deletes the user, frames, and daily counts (GDPR-style). */
+    fun deleteById(id: UUID): Boolean = db.withTransaction {
+        update("DELETE FROM daily_counts WHERE user_id = ?", id)
+        update("DELETE FROM frames WHERE user_id = ?", id)
+        update("DELETE FROM users WHERE id = ?", id) > 0
+    }
+
     private fun ResultSet.toUser() = UserRow(
         id = getObject("id", UUID::class.java),
         email = getString("email"),

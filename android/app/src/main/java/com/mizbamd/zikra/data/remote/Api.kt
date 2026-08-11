@@ -7,6 +7,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -104,6 +105,14 @@ class ZikraApi(private val baseUrl: String = BuildConfig.API_BASE_URL.trimEnd('/
             setBody(body)
         }
         return parseOrThrow(res)
+    }
+
+    suspend fun deleteAccount(token: String) {
+        val res = client.delete("$baseUrl/v1/account") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (res.status.value in 200..299 || res.status.value == 404) return
+        throw ApiException(errorMessage(res))
     }
 
     private suspend fun authPost(path: String, body: Credentials): AuthResponse {

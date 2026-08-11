@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  server:
+    name: Server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: server/gradle/wrapper/gradle-wrapper.properties
+      - name: Test / compile
+        run: |
+          chmod +x gradlew
+          ./gradlew test --no-daemon --console=plain
+      - name: Deploy note
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: .
+        run: |
+          echo "CI does not deploy. See docs/DEPLOY.md (Fly.io or Docker Compose)."
+          echo "Do not upload a Play AAB from CI without Play Console secrets."

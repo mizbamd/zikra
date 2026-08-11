@@ -194,12 +194,15 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
         composable("you") {
             YouScreen(
                 settings = state.settings,
+                authBusy = state.authBusy,
+                authError = state.authError,
                 onHaptics = vm::setHaptics,
                 onVolumeUp = vm::setVolumeUp,
                 onResetAt = vm::setResetAt,
                 onLanguage = vm::setLanguage,
                 onLocationEnabled = vm::setLocationEnabled,
                 onSignOut = vm::signOut,
+                onDeleteAccount = vm::deleteAccount,
                 onSignIn = { nav.navigate("signin") },
                 onBack = if (state.settings.mode != SessionMode.SIGNED_IN) {
                     { nav.popBackStack() }

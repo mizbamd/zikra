@@ -4,6 +4,7 @@ import com.mizbamd.zikra.auth.Security
 import com.mizbamd.zikra.config.Env
 import com.mizbamd.zikra.catalog.DhikrCatalog
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
+import com.mizbamd.zikra.models.AccountDeletedResponse
 import com.mizbamd.zikra.models.AuthResponse
 import com.mizbamd.zikra.models.ErrorResponse
 import com.mizbamd.zikra.models.GoogleSignInRequest
@@ -24,6 +25,7 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -153,8 +155,23 @@ fun Application.configureRoutes(
                     ),
                 )
             }
+
+            delete("/v1/account") { call.deleteAccount(users) }
+            post("/v1/account/delete") { call.deleteAccount(users) }
         }
     }
+}
+
+private suspend fun io.ktor.server.application.ApplicationCall.deleteAccount(users: UserRepo) {
+    val userId = userId() ?: run {
+        respond(HttpStatusCode.Unauthorized, ErrorResponse("Sign in required."))
+        return
+    }
+    if (!users.deleteById(userId)) {
+        respond(HttpStatusCode.NotFound, ErrorResponse("Unknown user."))
+        return
+    }
+    respond(HttpStatusCode.OK, AccountDeletedResponse())
 }
 
 private fun io.ktor.server.application.ApplicationCall.userId(): UUID? {

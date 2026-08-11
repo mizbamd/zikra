@@ -66,6 +66,9 @@ interface FrameDao {
 
     @Query("SELECT COUNT(*) FROM frames WHERE userId = :userId AND deleted = 0")
     suspend fun countActive(userId: String): Int
+
+    @Query("DELETE FROM frames WHERE userId = :userId")
+    suspend fun deleteForUser(userId: String)
 }
 
 @Dao
@@ -87,6 +90,9 @@ interface DailyCountDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(rows: List<DailyCountEntity>)
+
+    @Query("DELETE FROM daily_counts WHERE userId = :userId")
+    suspend fun deleteForUser(userId: String)
 }
 
 @Database(
