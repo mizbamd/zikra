@@ -93,6 +93,7 @@ fun SignInScreen(
 
     fun submit() {
         keyboard?.hide()
+        clearErrors()
         when {
             !email.contains("@") -> localError = invalidEmail
             password.length < 8 -> localError = passwordTooShort
