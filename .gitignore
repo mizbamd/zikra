@@ -1,0 +1,39 @@
+# Android / Gradle
+.gradle/
+**/build/
+**/captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+local.properties
+*.iml
+.cxx/
+
+# IDE
+.idea/
+*.ipr
+*.iws
+.vscode/
+*.swp
+.DS_Store
+
+# Kotlin
+.kotlin/
+
+# Env / secrets
+.env
+.env.local
+*.jks
+*.keystore
+google-services.json
+
+# OS
+Thumbs.db
+
+# Logs
+*.log
+hs_err_pid*
+
+# Optional SDK leftovers
+*.hprof

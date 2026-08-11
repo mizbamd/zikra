@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zikra</string>
+    <string name="wordmark_ar">ذكرى</string>
+    <string name="tagline">مكان هادئ للذكر.</string>
+    <string name="continue_guest">متابعة كضيف</string>
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="create_account">إنشاء حساب</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="google_sign_in">المتابعة عبر Google</string>
+    <string name="home">الرئيسية</string>
+    <string name="history">السجل</string>
+    <string name="you">أنت</string>
+    <string name="undo">تراجع</string>
+    <string name="reset_today">إعادة اليوم</string>
+    <string name="done_quiet">تم</string>
+    <string name="based_on_location">حسب موقعك</string>
+    <string name="sample_location">باستخدام موقع تجريبي (مكة)</string>
+    <string name="add_frame">إضافة ذكر</string>
+    <string name="edit_frame">تعديل الذكر</string>
+    <string name="arabic">العربية</string>
+    <string name="transliteration">النطق</string>
+    <string name="target_optional">الهدف اليومي (اختياري)</string>
+    <string name="save">حفظ</string>
+    <string name="delete">حذف</string>
+    <string name="lifetime">المجموع</string>
+    <string name="haptics">اهتزاز عند الضغط</string>
+    <string name="volume_up">زر رفع الصوت يزيد واحداً (وضع التركيز)</string>
+    <string name="reset_at">إعادة العد اليومي عند</string>
+    <string name="midnight">منتصف الليل</string>
+    <string name="fajr">الفجر</string>
+    <string name="language_label">اللغة</string>
+    <string name="english">English</string>
+    <string name="arabic_lang">العربية</string>
+    <string name="location">استخدم الموقع للتاريخ الهجري</string>
+    <string name="calendar_method">طريقة التقويم</string>
+    <string name="umm_al_qura">أم القرى</string>
+    <string name="sign_out">تسجيل الخروج</string>
+    <string name="guest_label">ضيف</string>
+    <string name="server_down">تعذر الوصول إلى خادم ذكرى. تأكد أنه يعمل، أو تابع كضيف.</string>
+    <string name="google_missing">تسجيل Google يحتاج معرّف عميل ويب. أضفه في local.properties.</string>
+    <string name="today">اليوم</string>
+</resources>

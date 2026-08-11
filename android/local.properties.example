@@ -1,0 +1,11 @@
+# Copy to local.properties (gitignored) or let Android Studio write sdk.dir.
+# sdk.dir=/Users/YOU/Library/Android/sdk
+
+# Emulator default is already http://10.0.2.2:8080
+# api.base.url=http://10.0.2.2:8080
+
+# Physical device on the same LAN as the Ktor server:
+# api.base.url=http://192.168.1.10:8080
+
+# Google Sign-In Web client ID (optional; stub until set)
+# google.web.client.id=
