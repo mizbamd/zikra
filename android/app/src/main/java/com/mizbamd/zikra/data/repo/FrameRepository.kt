@@ -14,6 +14,7 @@ import com.mizbamd.zikra.data.remote.SyncPushRequest
 import com.mizbamd.zikra.data.remote.ZikraApi
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.util.Defaults
+import com.mizbamd.zikra.util.DhikrLexicon
 import com.mizbamd.zikra.util.SAMPLE_LAT
 import com.mizbamd.zikra.util.SAMPLE_LON
 import com.mizbamd.zikra.util.ZikraTime
@@ -172,6 +173,14 @@ class FrameRepository(
         target: Int?,
     ) {
         val now = ZikraTime.nowIso()
+        val existing = id?.let { frames.get(it) }
+        val unchanged = existing != null &&
+            existing.arabic == arabic &&
+            existing.transliteration == transliteration
+        val catalog = DhikrLexicon.matchPair(arabic, transliteration)
+        if (!unchanged && catalog == null) return
+        val persistArabic = if (unchanged) arabic else catalog!!.arabic
+        val persistLatin = if (unchanged) transliteration else catalog!!.latin
         if (id == null) {
             val signedIn = userId != GUEST_USER_ID
             if (!FrameLimitPolicy.canAdd(frames.countActive(userId), signedIn)) return
@@ -180,8 +189,8 @@ class FrameRepository(
                 FrameEntity(
                     id = UUID.randomUUID().toString(),
                     userId = userId,
-                    arabic = arabic,
-                    transliteration = transliteration,
+                    arabic = persistArabic,
+                    transliteration = persistLatin,
                     target = target,
                     lifetimeCount = 0,
                     sortOrder = order,
@@ -192,11 +201,11 @@ class FrameRepository(
                 ),
             )
         } else {
-            val existing = frames.get(id) ?: return
+            val row = existing ?: return
             frames.update(
-                existing.copy(
-                    arabic = arabic,
-                    transliteration = transliteration,
+                row.copy(
+                    arabic = persistArabic,
+                    transliteration = persistLatin,
                     target = target,
                     updatedAt = now,
                     dirty = true,

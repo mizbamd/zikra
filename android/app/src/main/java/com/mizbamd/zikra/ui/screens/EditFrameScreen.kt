@@ -87,6 +87,17 @@ fun EditFrameScreen(
         arabicSuggesting = false
     }
 
+    val trimmedArabic = arabic.trim()
+    val trimmedLatin = transliteration.trim()
+    val currentExisting = existing
+    val unchangedExisting = currentExisting != null &&
+        trimmedArabic == currentExisting.arabic.trim() &&
+        trimmedLatin == currentExisting.transliteration.trim()
+    val catalogPair = remember(trimmedArabic, trimmedLatin) {
+        DhikrLexicon.matchPair(trimmedArabic, trimmedLatin)
+    }
+    val canSave = unchangedExisting || catalogPair != null
+
     val colors = zikraOnGreenFieldColors()
 
     Column(
@@ -161,9 +172,23 @@ fun EditFrameScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
         Spacer(Modifier.height(28.dp))
+        if (!canSave) {
+            Text(
+                stringResource(R.string.choose_dhikr_from_list),
+                color = GoldLight,
+                fontSize = 15.sp,
+            )
+            Spacer(Modifier.height(12.dp))
+        }
         GoldButton(stringResource(R.string.save), onClick = {
-            onSave(arabic.trim(), transliteration.trim(), target.toIntOrNull())
-        }, enabled = arabic.isNotBlank() && transliteration.isNotBlank())
+            val preserved = currentExisting.takeIf { unchangedExisting }
+            when {
+                preserved != null ->
+                    onSave(preserved.arabic, preserved.transliteration, target.toIntOrNull())
+                catalogPair != null ->
+                    onSave(catalogPair.arabic, catalogPair.latin, target.toIntOrNull())
+            }
+        }, enabled = canSave)
         if (onDelete != null) {
             QuietTextButton(stringResource(R.string.delete), onClick = onDelete)
         }

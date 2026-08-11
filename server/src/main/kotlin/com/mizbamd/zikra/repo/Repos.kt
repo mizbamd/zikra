@@ -5,6 +5,7 @@ import com.mizbamd.zikra.db.queryOne
 import com.mizbamd.zikra.db.queryList
 import com.mizbamd.zikra.db.toTimestamp
 import com.mizbamd.zikra.db.update
+import com.mizbamd.zikra.catalog.DhikrCatalog
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.models.DailyCountDto
 import com.mizbamd.zikra.models.FrameDto
@@ -69,8 +70,13 @@ class FrameRepo(private val db: Database) {
         ) { it.toFrame() }
     }
 
-    data class PushResult(val rejectedFrameIds: Set<String>) {
-        val overLimit: Boolean get() = rejectedFrameIds.isNotEmpty()
+    data class PushResult(
+        val rejectedOverLimit: Set<String> = emptySet(),
+        val rejectedOffCatalog: Set<String> = emptySet(),
+    ) {
+        val rejectedFrameIds: Set<String> get() = rejectedOverLimit + rejectedOffCatalog
+        val overLimit: Boolean get() = rejectedOverLimit.isNotEmpty()
+        val offCatalog: Boolean get() = rejectedOffCatalog.isNotEmpty()
     }
 
     fun upsert(userId: UUID, frame: FrameDto): PushResult = upsertAll(userId, listOf(frame))
@@ -81,7 +87,7 @@ class FrameRepo(private val db: Database) {
      * only new actives (insert or undelete) are rejected.
      */
     fun upsertAll(userId: UUID, incoming: List<FrameDto>): PushResult {
-        if (incoming.isEmpty()) return PushResult(emptySet())
+        if (incoming.isEmpty()) return PushResult()
         return db.withTransaction {
             queryOne("SELECT id FROM users WHERE id = ? FOR UPDATE", userId) { }
 
@@ -90,27 +96,38 @@ class FrameRepo(private val db: Database) {
                 userId,
             ) { it.getInt("n") } ?: 0
             val max = FrameLimitPolicy.maxFramesForSignedIn()
-            val rejected = mutableSetOf<String>()
+            val rejectedOverLimit = mutableSetOf<String>()
+            val rejectedOffCatalog = mutableSetOf<String>()
 
             incoming.forEach { frame ->
                 val existing = queryOne(
-                    "SELECT updated_at, deleted_at FROM frames WHERE id = ? AND user_id = ?",
+                    "SELECT updated_at, deleted_at, arabic, transliteration FROM frames WHERE id = ? AND user_id = ?",
                     UUID.fromString(frame.id),
                     userId,
                 ) {
                     ExistingFrame(
                         updatedAt = it.getTimestamp("updated_at").toInstant(),
                         deleted = it.getTimestamp("deleted_at") != null,
+                        arabic = it.getString("arabic"),
+                        transliteration = it.getString("transliteration"),
                     )
                 }
                 val incomingUpdated = Instant.parse(frame.updatedAt)
                 if (existing != null && !incomingUpdated.isAfter(existing.updatedAt)) return@forEach
 
+                val textUnchanged = existing != null &&
+                    existing.arabic == frame.arabic &&
+                    existing.transliteration == frame.transliteration
+                if (!textUnchanged && !DhikrCatalog.contains(frame.arabic, frame.transliteration)) {
+                    rejectedOffCatalog += frame.id
+                    return@forEach
+                }
+
                 val currentlyActive = existing != null && !existing.deleted
                 val wouldBeActive = !frame.deleted
                 if (wouldBeActive && !currentlyActive) {
                     if (active >= max) {
-                        rejected += frame.id
+                        rejectedOverLimit += frame.id
                         return@forEach
                     }
                     active++
@@ -120,7 +137,7 @@ class FrameRepo(private val db: Database) {
 
                 upsertFrame(userId, frame, incomingUpdated)
             }
-            PushResult(rejected)
+            PushResult(rejectedOverLimit, rejectedOffCatalog)
         }
     }
 
@@ -154,7 +171,12 @@ class FrameRepo(private val db: Database) {
         )
     }
 
-    private data class ExistingFrame(val updatedAt: Instant, val deleted: Boolean)
+    private data class ExistingFrame(
+        val updatedAt: Instant,
+        val deleted: Boolean,
+        val arabic: String,
+        val transliteration: String,
+    )
 
     private fun ResultSet.toFrame() = FrameDto(
         id = getObject("id", UUID::class.java).toString(),

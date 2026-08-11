@@ -33,6 +33,7 @@
     <string name="transliteration">Transliteration</string>
     <string name="target_optional">Daily target (optional)</string>
     <string name="save">Save</string>
+    <string name="choose_dhikr_from_list">Choose a dhikr from the list</string>
     <string name="delete">Delete</string>
     <string name="lifetime">Lifetime</string>
     <string name="haptics">Haptics on tap</string>

@@ -33,6 +33,7 @@
     <string name="transliteration">النطق</string>
     <string name="target_optional">الهدف اليومي (اختياري)</string>
     <string name="save">حفظ</string>
+    <string name="choose_dhikr_from_list">اختر ذكراً من القائمة</string>
     <string name="delete">حذف</string>
     <string name="lifetime">المجموع</string>
     <string name="haptics">اهتزاز عند الضغط</string>

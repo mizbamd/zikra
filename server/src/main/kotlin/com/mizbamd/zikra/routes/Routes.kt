@@ -2,6 +2,7 @@ package com.mizbamd.zikra.routes
 
 import com.mizbamd.zikra.auth.Security
 import com.mizbamd.zikra.config.Env
+import com.mizbamd.zikra.catalog.DhikrCatalog
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.models.AuthResponse
 import com.mizbamd.zikra.models.ErrorResponse
@@ -135,6 +136,13 @@ fun Application.configureRoutes(
                     call.respond(
                         HttpStatusCode.Conflict,
                         ErrorResponse(FrameLimitPolicy.message()),
+                    )
+                    return@post
+                }
+                if (frameResult.offCatalog) {
+                    call.respond(
+                        HttpStatusCode.UnprocessableEntity,
+                        ErrorResponse(DhikrCatalog.message()),
                     )
                     return@post
                 }
