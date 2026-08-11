@@ -23,7 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -45,6 +45,7 @@ import com.mizbamd.zikra.ui.screens.YouScreen
 import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.ForestDark
 import com.mizbamd.zikra.ui.theme.Gold
+import kotlinx.coroutines.flow.first
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -53,22 +54,41 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
     val nav = rememberNavController()
     val context = LocalContext.current
 
+    fun goToSessionRoot() {
+        nav.goToSessionRoot(state.settings.mode)
+    }
+
     LaunchedEffect(state.settings.mode) {
-        val target = when (state.settings.mode) {
-            SessionMode.WELCOME -> "welcome"
-            SessionMode.GUEST -> "guest"
-            SessionMode.SIGNED_IN -> "home"
-        }
+        nav.currentBackStackEntryFlow.first()
         val current = nav.currentDestination?.route
-        if (current != target && current != "signin") {
-            nav.navigate(target) {
-                popUpTo(nav.graph.findStartDestination().id) { inclusive = true }
-                launchSingleTop = true
+        when (state.settings.mode) {
+            SessionMode.WELCOME -> {
+                if (current != "welcome" && current != "signin") {
+                    nav.navigate("welcome") {
+                        popUpTo(nav.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             }
-        }
-        if (state.settings.mode == SessionMode.SIGNED_IN && current == "signin") {
-            nav.navigate("home") {
-                popUpTo(0) { inclusive = true }
+            SessionMode.GUEST -> {
+                val inGuest = current == "guest" || current == "you" || current == "signin" ||
+                    current.isFocusedOrEdit()
+                if (!inGuest) {
+                    nav.navigate("guest") {
+                        popUpTo(nav.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+            SessionMode.SIGNED_IN -> {
+                val inApp = current == "home" || current == "history" || current == "you" ||
+                    current == "signin" || current.isFocusedOrEdit()
+                if (!inApp) {
+                    nav.navigate("home") {
+                        popUpTo(nav.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             }
         }
     }
@@ -160,6 +180,7 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 onCount = { frame?.let { vm.increment(it.frame.id) } },
                 onUndo = { frame?.let { vm.undo(it.frame.id) } },
                 onReset = { frame?.let { vm.resetToday(it.frame.id) } },
+                onResetLifetime = { frame?.let { vm.resetLifetime(it.frame.id) } },
                 onArabic = { frame?.let { nav.navigate("focused/${it.frame.id}") } },
                 onYou = { nav.navigate("you") },
                 onSignIn = { nav.navigate("signin") },
@@ -227,6 +248,15 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
         ) { entry ->
             val id = entry.arguments?.getString("frameId")
             val frame = state.frames.firstOrNull { it.frame.id == id }
+            LaunchedEffect(id, frame) {
+                if (id == null) {
+                    goToSessionRoot()
+                    return@LaunchedEffect
+                }
+                if (frame != null) return@LaunchedEffect
+                val row = vm.frame(id)
+                if (row == null || row.deleted) goToSessionRoot()
+            }
             FocusedScreen(
                 frame = frame,
                 volumeUpEnabled = state.settings.volumeUpIncrement,
@@ -234,7 +264,8 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 onCount = { id?.let(vm::increment) },
                 onUndo = { id?.let(vm::undo) },
                 onReset = { id?.let(vm::resetToday) },
-                onBack = { nav.popBackStack() },
+                onResetLifetime = { id?.let(vm::resetLifetime) },
+                onBack = { goToSessionRoot() },
                 onEdit = { id?.let { nav.navigate("edit/$it") } },
                 onClearDone = vm::clearDone,
             )
@@ -255,16 +286,35 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 maxFrames = state.maxFrames,
                 onSave = { arabic, transliteration, target ->
                     vm.saveFrame(id, arabic, transliteration, target)
-                    nav.popBackStack()
+                    if (!nav.popBackStack()) goToSessionRoot()
                 },
                 onDelete = id?.let {
                     {
                         vm.deleteFrame(it)
-                        nav.popBackStack()
+                        goToSessionRoot()
                     }
                 },
-                onBack = { nav.popBackStack() },
+                onBack = {
+                    if (!nav.popBackStack()) goToSessionRoot()
+                },
             )
+        }
+    }
+}
+
+private fun String?.isFocusedOrEdit(): Boolean =
+    this?.startsWith("focused") == true || this?.startsWith("edit") == true
+
+private fun NavHostController.goToSessionRoot(mode: SessionMode) {
+    val root = when (mode) {
+        SessionMode.GUEST -> "guest"
+        SessionMode.SIGNED_IN -> "home"
+        SessionMode.WELCOME -> "welcome"
+    }
+    if (!popBackStack(root, inclusive = false)) {
+        navigate(root) {
+            launchSingleTop = true
+            popUpTo(graph.id) { inclusive = true }
         }
     }
 }

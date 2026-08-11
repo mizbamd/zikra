@@ -23,6 +23,11 @@
     <string name="you">You</string>
     <string name="undo">Undo</string>
     <string name="reset_today">Reset today</string>
+    <string name="reset_lifetime">Reset lifetime</string>
+    <string name="reset_lifetime_confirm_title">Reset lifetime count?</string>
+    <string name="reset_lifetime_confirm_body">This sets lifetime and today’s count to 0. It cannot be undone.</string>
+    <string name="delete_frame_confirm_title">Delete this dhikr?</string>
+    <string name="delete_frame_confirm_body">This removes the dhikr from your list. This cannot be undone.</string>
     <string name="done_quiet">Done</string>
     <string name="based_on_location">Based on your location</string>
     <string name="sample_location">Using sample location (Makkah)</string>

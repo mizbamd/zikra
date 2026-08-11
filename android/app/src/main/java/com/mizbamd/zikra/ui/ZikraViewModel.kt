@@ -167,6 +167,10 @@ class ZikraViewModel(
         viewModelScope.launch { frames.resetToday(state.value.settings.userId, frameId) }
     }
 
+    fun resetLifetime(frameId: String) {
+        viewModelScope.launch { frames.resetLifetime(state.value.settings.userId, frameId) }
+    }
+
     fun continueGuest() {
         viewModelScope.launch { auth.continueGuest() }
     }

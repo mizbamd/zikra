@@ -23,6 +23,11 @@
     <string name="you">أنت</string>
     <string name="undo">تراجع</string>
     <string name="reset_today">إعادة اليوم</string>
+    <string name="reset_lifetime">إعادة المجموع</string>
+    <string name="reset_lifetime_confirm_title">إعادة العدّ الإجمالي؟</string>
+    <string name="reset_lifetime_confirm_body">سيُصفَّر المجموع وعدّ اليوم. لا يمكن التراجع.</string>
+    <string name="delete_frame_confirm_title">حذف هذا الذكر؟</string>
+    <string name="delete_frame_confirm_body">سيُزال الذكر من قائمتك. لا يمكن التراجع.</string>
     <string name="done_quiet">تم</string>
     <string name="based_on_location">حسب موقعك</string>
     <string name="sample_location">باستخدام موقع تجريبي (مكة)</string>

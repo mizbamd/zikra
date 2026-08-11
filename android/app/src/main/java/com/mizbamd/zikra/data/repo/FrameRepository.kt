@@ -149,20 +149,39 @@ class FrameRepository(
         syncQuietly()
     }
 
+    /**
+     * Zero today's count only. Lifetime is cumulative (includes today and past days)
+     * and is not reduced here — use [resetLifetime] or [undo] for that.
+     */
     suspend fun resetToday(userId: String, frameId: String) {
         val s = settings.settings.first()
         val date = todayKey(s.resetAt, s.lat, s.lon)
         val now = ZikraTime.nowIso()
-        val frame = frames.get(frameId) ?: return
         val existing = counts.get(userId, frameId, date) ?: return
+        if (existing.count == 0) return
         counts.upsert(existing.copy(count = 0, updatedAt = now, dirty = true))
-        frames.update(
-            frame.copy(
-                lifetimeCount = (frame.lifetimeCount - existing.count).coerceAtLeast(0),
-                updatedAt = now,
-                dirty = true,
-            ),
-        )
+        syncQuietly()
+    }
+
+    /** Clears lifetime and today's count. History rows for past days are left as-is. */
+    suspend fun resetLifetime(userId: String, frameId: String) {
+        val s = settings.settings.first()
+        val date = todayKey(s.resetAt, s.lat, s.lon)
+        val now = ZikraTime.nowIso()
+        val frame = frames.get(frameId) ?: return
+        val existing = counts.get(userId, frameId, date)
+        if (existing != null && existing.count != 0) {
+            counts.upsert(existing.copy(count = 0, updatedAt = now, dirty = true))
+        }
+        if (frame.lifetimeCount != 0) {
+            frames.update(
+                frame.copy(
+                    lifetimeCount = 0,
+                    updatedAt = now,
+                    dirty = true,
+                ),
+            )
+        }
         syncQuietly()
     }
 
@@ -248,7 +267,7 @@ class FrameRepository(
         val s = settings.settings.first()
         if (!s.isSignedIn) return
         val pull = api.pull(s.token)
-        mergeRemote(s.userId, pull.frames, pull.dailyCounts)
+        mergeRemote(s.userId, pull.frames, pull.dailyCounts, overwriteDirty = false)
         val dirtyFrames = frames.dirty(s.userId)
         val dirtyCounts = counts.dirty(s.userId)
         if (dirtyFrames.isEmpty() && dirtyCounts.isEmpty()) return
@@ -259,9 +278,15 @@ class FrameRepository(
                 dailyCounts = dirtyCounts.map { it.toDto() },
             ),
         )
-        mergeRemote(s.userId, pushed.frames, pushed.dailyCounts)
-        dirtyFrames.forEach { frames.update(it.copy(dirty = false)) }
-        dirtyCounts.forEach { counts.upsert(it.copy(dirty = false)) }
+        mergeRemote(s.userId, pushed.frames, pushed.dailyCounts, overwriteDirty = true)
+        dirtyFrames.forEach { old ->
+            val latest = frames.get(old.id) ?: return@forEach
+            frames.update(latest.copy(dirty = false))
+        }
+        dirtyCounts.forEach { old ->
+            val latest = counts.get(old.userId, old.frameId, old.date) ?: return@forEach
+            counts.upsert(latest.copy(dirty = false))
+        }
         pruneOldCounts()
     }
 
@@ -273,7 +298,7 @@ class FrameRepository(
             if (pull.frames.none { !it.deleted }) {
                 sync()
             } else {
-                mergeRemote(userId, pull.frames, pull.dailyCounts)
+                mergeRemote(userId, pull.frames, pull.dailyCounts, overwriteDirty = false)
             }
         }
         ensureSeeded(userId, signedIn = true)
@@ -284,10 +309,12 @@ class FrameRepository(
         userId: String,
         remoteFrames: List<FrameDto>,
         remoteCounts: List<DailyCountDto>,
+        overwriteDirty: Boolean,
     ) {
         remoteFrames.forEach { dto ->
             val local = frames.get(dto.id)
-            if (local == null || dto.updatedAt >= local.updatedAt) {
+            if (local != null && local.dirty && !overwriteDirty) return@forEach
+            if (local == null || remoteWins(dto.updatedAt, local.updatedAt)) {
                 frames.upsert(
                     FrameEntity(
                         id = dto.id,
@@ -307,7 +334,8 @@ class FrameRepository(
         }
         remoteCounts.forEach { dto ->
             val local = counts.get(userId, dto.frameId, dto.date)
-            if (local == null || dto.updatedAt >= local.updatedAt) {
+            if (local != null && local.dirty && !overwriteDirty) return@forEach
+            if (local == null || remoteWins(dto.updatedAt, local.updatedAt)) {
                 counts.upsert(
                     DailyCountEntity(
                         id = dto.id,
@@ -321,6 +349,13 @@ class FrameRepository(
                 )
             }
         }
+    }
+
+    /** Instant compare when possible; equal timestamps keep remote (last pull / push wins). */
+    private fun remoteWins(remoteUpdatedAt: String, localUpdatedAt: String): Boolean {
+        val remote = runCatching { java.time.Instant.parse(remoteUpdatedAt) }.getOrNull()
+        val local = runCatching { java.time.Instant.parse(localUpdatedAt) }.getOrNull()
+        return if (remote != null && local != null) !remote.isBefore(local) else remoteUpdatedAt >= localUpdatedAt
     }
 
     private fun todayKey(resetAt: ResetAt, lat: Double?, lon: Double?): String =

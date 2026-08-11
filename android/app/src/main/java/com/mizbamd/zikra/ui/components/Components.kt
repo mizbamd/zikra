@@ -139,7 +139,7 @@ fun FrameCard(
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
                 fontFamily = FontFamily.Serif,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -190,10 +190,11 @@ fun GoldButton(
 fun QuietTextButton(
     text: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    TextButton(onClick = onClick, modifier = modifier) {
-        Text(text, color = GoldLight)
+    TextButton(onClick = onClick, modifier = modifier, enabled = enabled) {
+        Text(text, color = if (enabled) GoldLight else GoldLight.copy(alpha = 0.4f))
     }
 }
 
