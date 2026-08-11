@@ -33,6 +33,9 @@ data class Settings(
     val lat: Double? = null,
     val lon: Double? = null,
     val hasRealLocation: Boolean = false,
+    val cityName: String = "",
+    val cityCacheLat: Double? = null,
+    val cityCacheLon: Double? = null,
     val tickSound: Boolean = false,
     val reminderEnabled: Boolean = false,
     val reminderHour: Int = 8,
@@ -129,6 +132,14 @@ class SettingsStore(private val context: Context) {
         }
     }
 
+    suspend fun setCity(name: String, lat: Double, lon: Double) {
+        context.dataStore.edit {
+            it[Keys.cityName] = name
+            it[Keys.cityCacheLat] = lat
+            it[Keys.cityCacheLon] = lon
+        }
+    }
+
     private object Keys {
         val mode: Key<String> = stringPreferencesKey("mode")
         val userId: Key<String> = stringPreferencesKey("userId")
@@ -143,6 +154,9 @@ class SettingsStore(private val context: Context) {
         val lat: Key<Double> = doublePreferencesKey("lat")
         val lon: Key<Double> = doublePreferencesKey("lon")
         val hasRealLocation: Key<Boolean> = booleanPreferencesKey("hasRealLocation")
+        val cityName: Key<String> = stringPreferencesKey("cityName")
+        val cityCacheLat: Key<Double> = doublePreferencesKey("cityCacheLat")
+        val cityCacheLon: Key<Double> = doublePreferencesKey("cityCacheLon")
         val tickSound: Key<Boolean> = booleanPreferencesKey("tickSound")
         val reminderEnabled: Key<Boolean> = booleanPreferencesKey("reminderEnabled")
         val reminderHour: Key<Int> = intPreferencesKey("reminderHour")
@@ -172,6 +186,9 @@ class SettingsStore(private val context: Context) {
         lat = this[Keys.lat],
         lon = this[Keys.lon],
         hasRealLocation = bool(Keys.hasRealLocation, false),
+        cityName = str(Keys.cityName, ""),
+        cityCacheLat = this[Keys.cityCacheLat],
+        cityCacheLon = this[Keys.cityCacheLon],
         tickSound = bool(Keys.tickSound, false),
         reminderEnabled = bool(Keys.reminderEnabled, false),
         reminderHour = int(Keys.reminderHour, 8).coerceIn(0, 23),

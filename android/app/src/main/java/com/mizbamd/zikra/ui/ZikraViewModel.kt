@@ -17,6 +17,7 @@ import com.mizbamd.zikra.data.repo.FrameRepository
 import com.mizbamd.zikra.data.repo.FrameToday
 import com.mizbamd.zikra.entitlements.FrameLimitPolicy
 import com.mizbamd.zikra.notify.DailyReminder
+import com.mizbamd.zikra.util.CityLookup
 import com.mizbamd.zikra.util.CountTick
 import com.mizbamd.zikra.util.SAMPLE_LAT
 import com.mizbamd.zikra.util.SAMPLE_LON
@@ -46,6 +47,7 @@ data class UiState(
     val maxFrames: Int = FrameLimitPolicy.DEFAULT_MAX_FRAMES,
     val canAddFrame: Boolean = true,
     val streakDays: Int = 0,
+    val todayKey: String = "",
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -114,6 +116,7 @@ class ZikraViewModel(
                 today = todayKey,
                 onlyIfCountedToday = settings.mode == SessionMode.GUEST,
             ),
+            todayKey = todayKey,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, UiState())
 
@@ -261,7 +264,16 @@ class ZikraViewModel(
     }
 
     fun setCoordinates(lat: Double, lon: Double, real: Boolean) {
-        viewModelScope.launch { settingsStore.setLocation(lat, lon, real) }
+        viewModelScope.launch {
+            settingsStore.setLocation(lat, lon, real)
+            if (!real) return@launch
+            val s = settingsStore.settings.first()
+            if (!CityLookup.shouldRefresh(lat, lon, s.cityCacheLat, s.cityCacheLon, s.cityName)) {
+                return@launch
+            }
+            val city = CityLookup.lookup(getApplication(), lat, lon)
+            if (!city.isNullOrBlank()) settingsStore.setCity(city, lat, lon)
+        }
     }
 
     fun useSampleLocation() {
@@ -271,7 +283,7 @@ class ZikraViewModel(
     fun displayDates() = ZikraTime.displayDates(
         lat = state.value.settings.lat ?: SAMPLE_LAT,
         lon = state.value.settings.lon ?: SAMPLE_LON,
-        hasRealLocation = state.value.settings.hasRealLocation,
+        cityName = state.value.settings.cityName,
     )
 
     private fun authenticate(block: suspend () -> Unit) {

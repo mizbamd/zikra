@@ -2,7 +2,8 @@
 <resources>
     <string name="app_name">Zikra</string>
     <string name="wordmark_ar">ذكرى</string>
-    <string name="tagline">A quiet place to remember.</string>
+    <string name="tagline">ذكرى — for the nafs</string>
+    <string name="tagline_sub">A counter for dhikr</string>
     <string name="continue_guest">Continue as guest</string>
     <string name="sign_in">Sign in</string>
     <string name="create_account">Create account</string>
@@ -38,8 +39,7 @@
     <string name="delete_frame_confirm_title">Delete this dhikr?</string>
     <string name="delete_frame_confirm_body">This removes the dhikr from your list. This cannot be undone.</string>
     <string name="done_quiet">Done</string>
-    <string name="based_on_location">Based on your location</string>
-    <string name="sample_location">Using sample location (Makkah)</string>
+    <string name="city_unknown">City unknown</string>
     <string name="add_frame">Add dhikr</string>
     <string name="frame_limit_reached">You can have up to %d dhikr for now</string>
     <string name="edit_frame">Edit dhikr</string>
@@ -83,8 +83,11 @@
     <string name="history_export_subject">Zikra daily counts</string>
     <string name="history_empty">No counts yet.</string>
     <string name="summary_empty">Add a dhikr on Home to see it here.</string>
+    <string name="summary_empty_today">Nothing counted yet today.</string>
     <string name="summary_hero_label">You remembered</string>
     <string name="summary_hero_count">×%d</string>
+    <string name="summary_last_seven">Last 7 days</string>
+    <string name="summary_chart_cd">Today’s dhikr, %d in total</string>
     <string name="summary_thanks">Jazakum Allahu khayran for using Zikra.</string>
     <string name="summary_thanks_signoff">— MizbaMd</string>
     <plurals name="streak_days">

@@ -43,6 +43,7 @@ import com.mizbamd.zikra.ui.theme.GoldLight
 import com.mizbamd.zikra.ui.theme.OnGreen
 import com.mizbamd.zikra.ui.theme.OnGreenTextStyle
 import com.mizbamd.zikra.ui.theme.zikraOnGreenFieldColors
+import com.mizbamd.zikra.ui.theme.zikraSafeDrawing
 
 @Composable
 fun SignInScreen(
@@ -106,6 +107,7 @@ fun SignInScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .zikraSafeDrawing()
             .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(28.dp),

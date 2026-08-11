@@ -76,6 +76,30 @@ object DhikrLexicon {
         return DhikrPair(item.arabic, item.latin)
     }
 
+    fun allPairs(): List<DhikrPair> = catalog.map { DhikrPair(it.arabic, it.latin) }
+
+    /** Full catalog, or prefix/contains filter on Arabic, latin, and aliases. No hit cap. */
+    fun browse(arabicQuery: String = "", latinQuery: String = ""): List<DhikrPair> {
+        val a = normalizeArabic(arabicQuery)
+        val l = normalizeLatin(latinQuery)
+        if (a.isEmpty() && l.isEmpty()) return allPairs()
+        data class Hit(val pair: DhikrPair, val prefix: Boolean)
+        return catalog.mapNotNull { e ->
+            val ar = normalizeArabic(e.arabic)
+            val latinKeys = buildList {
+                add(normalizeLatin(e.latin))
+                e.aliases.forEach { alias -> add(normalizeLatin(alias)) }
+            }
+            val arabicHit = a.isEmpty() || ar.startsWith(a) || ar.contains(a)
+            val latinHit = l.isEmpty() || latinKeys.any { it.startsWith(l) || it.contains(l) }
+            if (!arabicHit || !latinHit) return@mapNotNull null
+            val prefix = (a.isNotEmpty() && ar.startsWith(a)) ||
+                (l.isNotEmpty() && latinKeys.any { it.startsWith(l) })
+            Hit(DhikrPair(e.arabic, e.latin), prefix)
+        }.sortedWith(compareBy<Hit> { if (it.prefix) 0 else 1 }.thenBy { it.pair.latin })
+            .map { it.pair }
+    }
+
     fun searchLatin(raw: String, limit: Int = 8): List<DhikrPair> {
         val key = normalizeLatin(raw)
         if (key.length < 2) return emptyList()

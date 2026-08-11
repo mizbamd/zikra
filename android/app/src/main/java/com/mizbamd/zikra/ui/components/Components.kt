@@ -5,7 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -24,12 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
@@ -41,38 +48,41 @@ import com.mizbamd.zikra.ui.theme.GoldLight
 import com.mizbamd.zikra.ui.theme.Ink
 import com.mizbamd.zikra.ui.theme.OnGreen
 import com.mizbamd.zikra.util.DisplayDates
-import com.mizbamd.zikra.util.LocationLabel
 
 @Composable
 fun DateHeader(dates: DisplayDates, streakDays: Int = 0, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            dates.gregorian,
-            color = Cream,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            dates.hijri,
-            color = GoldLight,
-            fontSize = 15.sp,
-            fontFamily = FontFamily.Serif,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            stringResource(
-                if (dates.locationLabelKey == LocationLabel.REAL) {
-                    R.string.based_on_location
-                } else {
-                    R.string.sample_location
-                },
-            ),
-            color = Cream.copy(alpha = 0.65f),
-            fontSize = 12.sp,
-        )
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Text(
+                dates.gregorian,
+                color = Cream,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                dates.hijri,
+                color = GoldLight,
+                fontSize = 15.sp,
+                fontFamily = FontFamily.Serif,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        dates.cityName?.let { city ->
+            Spacer(Modifier.height(2.dp))
+            Text(
+                city,
+                color = Cream.copy(alpha = 0.65f),
+                fontSize = 12.sp,
+                textAlign = TextAlign.Start,
+            )
+        }
         if (streakDays > 0) {
             Spacer(Modifier.height(8.dp))
             Text(
@@ -135,25 +145,22 @@ fun FrameCard(
                 .clickable(onClick = onArabic),
             horizontalAlignment = Alignment.End,
         ) {
-            Text(
-                item.frame.arabic,
+            AutoFitDhikrText(
+                text = item.frame.arabic,
                 color = Ink,
-                fontSize = 24.sp,
-                lineHeight = 32.sp,
-                fontFamily = FontFamily.Serif,
-                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(),
+                maxFontSize = 24.sp,
+                minFontSize = 18.sp,
+                lineHeightRatio = 32f / 24f,
+                maxLinesBeforeScale = 4,
             )
             Text(
                 item.frame.transliteration,
                 color = Ink.copy(alpha = 0.55f),
                 fontSize = 13.sp,
+                lineHeight = 18.sp,
                 textAlign = TextAlign.End,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                softWrap = true,
                 modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
             )
         }
@@ -172,16 +179,69 @@ fun DhikrCountSurface(
     modifier: Modifier = Modifier,
 ) {
     val plaque = RoundedCornerShape(24.dp)
-    Box(
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val arabicStyle = remember {
+        TextStyle(
+            color = Cream,
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+    }
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
+        val belowPlaquePx = with(density) {
+            val countBlock = 20.dp.toPx() + 22.sp.toPx()
+            val doneBlock = if (showDone) 8.dp.toPx() + 20.sp.toPx() else 0f
+            countBlock + doneBlock
+        }
+        val plaqueMaxDp = with(density) {
+            (constraints.maxHeight - belowPlaquePx).toDp().coerceAtLeast(0.dp)
+        }
+        val innerPadX = with(density) { 48.dp.roundToPx() }
+        val innerPadY = with(density) { 56.dp.roundToPx() }
+        val gapPx = with(density) { 10.dp.roundToPx() }
+        val contentWidthPx = (constraints.maxWidth - innerPadX).coerceAtLeast(0)
+        val innerMaxHeightPx = with(density) {
+            (plaqueMaxDp.roundToPx() - innerPadY).coerceAtLeast(0)
+        }
+        val latinLayout = remember(transliteration, contentWidthPx) {
+            textMeasurer.measure(
+                text = AnnotatedString(transliteration),
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    lineHeight = 24.sp,
+                    textAlign = TextAlign.Center,
+                ),
+                overflow = TextOverflow.Visible,
+                softWrap = true,
+                constraints = Constraints(maxWidth = contentWidthPx),
+            )
+        }
+        val arabicBudgetPx = (innerMaxHeightPx - latinLayout.size.height - gapPx).coerceAtLeast(0)
+        val arabicFontSp = remember(arabic, contentWidthPx, arabicBudgetPx) {
+            chooseDhikrFontSp(
+                text = arabic,
+                textMeasurer = textMeasurer,
+                maxWidthPx = contentWidthPx,
+                maxHeightPx = arabicBudgetPx,
+                maxFontSp = 64f,
+                minFontSp = 28f,
+                lineHeightRatio = 76f / 64f,
+                maxLinesBeforeScale = Int.MAX_VALUE,
+                baseStyle = arabicStyle,
+            )
+        }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(max = plaqueMaxDp)
                     .clip(plaque)
                     .background(Cream.copy(alpha = 0.06f))
                     .border(1.5.dp, Gold.copy(alpha = 0.9f), plaque)
@@ -190,24 +250,31 @@ fun DhikrCountSurface(
                         indication = null,
                         onClick = onCount,
                     )
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp, vertical = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     arabic,
                     color = Cream,
-                    fontSize = 64.sp,
-                    lineHeight = 76.sp,
+                    fontSize = arabicFontSp.sp,
+                    lineHeight = (arabicFontSp * 76f / 64f).sp,
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
+                    softWrap = true,
+                    overflow = TextOverflow.Visible,
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
                     transliteration,
                     color = Cream.copy(alpha = 0.55f),
                     fontSize = 18.sp,
+                    lineHeight = 24.sp,
                     textAlign = TextAlign.Center,
+                    softWrap = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             Spacer(Modifier.height(20.dp))

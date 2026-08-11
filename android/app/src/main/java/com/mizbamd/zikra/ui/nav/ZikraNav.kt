@@ -220,6 +220,9 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
         composable("summary") {
             SummaryScreen(
                 frames = state.frames,
+                history = state.history,
+                todayKey = state.todayKey,
+                streakDays = state.streakDays,
                 onFocus = { nav.navigate("focused/$it") },
                 bottomBar = { Bottom("summary") },
             )

@@ -2,7 +2,8 @@
 <resources>
     <string name="app_name">Zikra</string>
     <string name="wordmark_ar">ذكرى</string>
-    <string name="tagline">مكان هادئ للذكر.</string>
+    <string name="tagline">ذكرى — للنفس</string>
+    <string name="tagline_sub">عداد للذكر</string>
     <string name="continue_guest">متابعة كضيف</string>
     <string name="sign_in">تسجيل الدخول</string>
     <string name="create_account">إنشاء حساب</string>
@@ -38,8 +39,7 @@
     <string name="delete_frame_confirm_title">حذف هذا الذكر؟</string>
     <string name="delete_frame_confirm_body">سيُزال الذكر من قائمتك. لا يمكن التراجع.</string>
     <string name="done_quiet">تم</string>
-    <string name="based_on_location">حسب موقعك</string>
-    <string name="sample_location">باستخدام موقع تجريبي (مكة)</string>
+    <string name="city_unknown">المدينة غير معروفة</string>
     <string name="add_frame">إضافة ذكر</string>
     <string name="frame_limit_reached">يمكنك الاحتفاظ بما يصل إلى %d أذكار حالياً</string>
     <string name="edit_frame">تعديل الذكر</string>
@@ -83,8 +83,11 @@
     <string name="history_export_subject">عدّادات ذكرى اليومية</string>
     <string name="history_empty">لا عدّادات بعد.</string>
     <string name="summary_empty">أضف ذكراً من الرئيسية ليظهر هنا.</string>
+    <string name="summary_empty_today">لم يُحسب شيء اليوم.</string>
     <string name="summary_hero_label">لقد ذكرت</string>
     <string name="summary_hero_count">×%d</string>
+    <string name="summary_last_seven">آخر ٧ أيام</string>
+    <string name="summary_chart_cd">ذكر اليوم، المجموع %d</string>
     <string name="summary_thanks">جزاكم الله خيراً لاستخدام ذكرى.</string>
     <string name="summary_thanks_signoff">— MizbaMd</string>
     <plurals name="streak_days">

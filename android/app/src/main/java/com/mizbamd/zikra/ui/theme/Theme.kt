@@ -7,6 +7,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +23,27 @@ val Ink = Color(0xFF14241F)
 val CardWhite = Color(0xFFFFFDF8)
 /** Typed text and hints on forest-green screens (never Ink/black). */
 val OnGreen = Color.White
+
+/** Summary chart slices — gold / forest / cream family, cycled for up to 10 frames. */
+val ChartSliceGold = Gold
+val ChartSliceGreen = Forest
+val ChartSliceCreamGold = lerp(GoldLight, Ink, 0.28f)
+val ChartSliceOlive = lerp(Forest, Gold, 0.48f)
+val ChartSliceSage = ForestMid
+val ChartSliceBronze = lerp(Gold, ForestDark, 0.35f)
+val ChartSliceMoss = lerp(ForestMid, GoldLight, 0.22f)
+val ChartSliceSand = lerp(Gold, Ink, 0.18f)
+
+val ChartSlices = listOf(
+    ChartSliceGold,
+    ChartSliceGreen,
+    ChartSliceCreamGold,
+    ChartSliceOlive,
+    ChartSliceSage,
+    ChartSliceBronze,
+    ChartSliceMoss,
+    ChartSliceSand,
+)
 
 val OnGreenTextStyle = TextStyle(color = OnGreen, fontSize = 16.sp)
 
