@@ -110,20 +110,20 @@ fun HomeScreen(
                     Spacer(Modifier.height(88.dp))
                 }
                 HomeScrollbar(scroll)
+                if (canAddFrame) {
+                    FloatingActionButton(
+                        onClick = onAdd,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 16.dp, bottom = 16.dp),
+                        containerColor = Gold,
+                        contentColor = ForestDark,
+                    ) {
+                        Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.add_frame))
+                    }
+                }
             }
             bottomBar()
-        }
-        if (canAddFrame) {
-            FloatingActionButton(
-                onClick = onAdd,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 72.dp),
-                containerColor = Gold,
-                contentColor = ForestDark,
-            ) {
-                Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.add_frame))
-            }
         }
     }
 }

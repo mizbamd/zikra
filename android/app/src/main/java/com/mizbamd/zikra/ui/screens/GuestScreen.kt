@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
@@ -63,10 +65,15 @@ fun GuestScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(Modifier.fillMaxWidth()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        ) {
             IconButton(onClick = onYou, modifier = Modifier.align(Alignment.CenterEnd)) {
                 Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.you), tint = Cream)
             }
@@ -74,7 +81,7 @@ fun GuestScreen(
                 Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.sign_in), tint = Cream)
             }
         }
-        DateHeader(dates, streakDays = streakDays)
+        DateHeader(dates, streakDays = streakDays, modifier = Modifier.padding(horizontal = 20.dp))
         if (frame != null) {
             DhikrCountSurface(
                 arabic = frame.frame.arabic,
@@ -85,7 +92,8 @@ fun GuestScreen(
                 onCount = onCount,
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
             )
             Text(
                 "${stringResource(R.string.lifetime)} ${frame.frame.lifetimeCount}",
@@ -97,6 +105,7 @@ fun GuestScreen(
                 onReset = onReset,
                 undoEnabled = frame.todayCount > 0,
                 resetEnabled = frame.todayCount > 0,
+                modifier = Modifier.padding(horizontal = 20.dp),
             )
             QuietTextButton(
                 stringResource(R.string.reset_lifetime),

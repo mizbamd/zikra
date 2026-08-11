@@ -1,6 +1,7 @@
 package com.mizbamd.zikra.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
 import com.mizbamd.zikra.data.repo.FrameToday
-import com.mizbamd.zikra.ui.theme.CardWhite
 import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.ForestDark
 import com.mizbamd.zikra.ui.theme.Gold
@@ -92,13 +92,14 @@ fun FrameCard(
     onArabic: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val plaque = RoundedCornerShape(22.dp)
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 96.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(CardWhite)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .background(Cream, plaque)
+            .border(1.5.dp, Gold, plaque)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -170,34 +171,45 @@ fun DhikrCountSurface(
     onCount: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val plaque = RoundedCornerShape(24.dp)
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onCount,
-            )
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                arabic,
-                color = Cream,
-                fontSize = 64.sp,
-                lineHeight = 76.sp,
-                fontFamily = FontFamily.Serif,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                transliteration,
-                color = Cream.copy(alpha = 0.55f),
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(plaque)
+                    .background(Cream.copy(alpha = 0.06f))
+                    .border(1.5.dp, Gold.copy(alpha = 0.9f), plaque)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onCount,
+                    )
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    arabic,
+                    color = Cream,
+                    fontSize = 64.sp,
+                    lineHeight = 76.sp,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    transliteration,
+                    color = Cream.copy(alpha = 0.55f),
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
             Spacer(Modifier.height(20.dp))
             Text(
                 text = buildString {
@@ -266,9 +278,10 @@ fun CounterActions(
     onReset: () -> Unit,
     undoEnabled: Boolean = true,
     resetEnabled: Boolean = true,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),

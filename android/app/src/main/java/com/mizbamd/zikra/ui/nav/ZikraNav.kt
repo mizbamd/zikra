@@ -310,10 +310,8 @@ private fun NavHostController.goToSessionRoot(mode: SessionMode) {
         SessionMode.SIGNED_IN -> "home"
         SessionMode.WELCOME -> "welcome"
     }
-    if (!popBackStack(root, inclusive = false)) {
-        navigate(root) {
-            launchSingleTop = true
-            popUpTo(graph.id) { inclusive = true }
-        }
+    navigate(root) {
+        popUpTo(root) { inclusive = false }
+        launchSingleTop = true
     }
 }
