@@ -4,7 +4,7 @@ Android-first tasbih / dhikr counter. Play listing name: **Zikra**. Application 
 
 Guest can count without an account. Signed-in users get independent **frames** (one counter per dhikr), offline-first on the phone, then synced to a small Kotlin API.
 
-**GitHub:** private repo [mizbamd/zikra](https://github.com/mizbamd/zikra). Baseline tag **v0.1.0**. After that, every change (and every release) goes through a pull request into `main` — see [CONTRIBUTING.md](CONTRIBUTING.md).
+**GitHub:** private repo [mizbamd/zikra](https://github.com/mizbamd/zikra). Code baseline **v0.1.0**. First sideload release **v1.0.0-pilot**. Every change goes through a pull request into `main` — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 CI: `.github/workflows/ci.yml` runs `server/gradlew test` on pull requests. It does **not** deploy or upload a Play AAB. Production API: [docs/DEPLOY.md](docs/DEPLOY.md). Play listing: [docs/PLAY_STORE.md](docs/PLAY_STORE.md). Privacy policy (host before publish): [docs/PRIVACY.md](docs/PRIVACY.md).
 
