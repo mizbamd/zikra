@@ -33,6 +33,7 @@ import com.mizbamd.zikra.ui.theme.Cream
 import com.mizbamd.zikra.ui.theme.OnGreen
 import com.mizbamd.zikra.ui.theme.OnGreenTextStyle
 import com.mizbamd.zikra.ui.theme.zikraOnGreenFieldColors
+import com.mizbamd.zikra.util.DhikrLexicon
 
 @Composable
 fun EditFrameScreen(
@@ -44,11 +45,19 @@ fun EditFrameScreen(
     var arabic by remember { mutableStateOf(existing?.arabic.orEmpty()) }
     var transliteration by remember { mutableStateOf(existing?.transliteration.orEmpty()) }
     var target by remember { mutableStateOf(existing?.target?.toString().orEmpty()) }
+    var arabicTouched by remember { mutableStateOf(false) }
+    var latinTouched by remember { mutableStateOf(false) }
+    var autoArabic by remember { mutableStateOf("") }
+    var autoLatin by remember { mutableStateOf("") }
 
     LaunchedEffect(existing?.id) {
         arabic = existing?.arabic.orEmpty()
         transliteration = existing?.transliteration.orEmpty()
         target = existing?.target?.toString().orEmpty()
+        arabicTouched = existing != null
+        latinTouched = existing != null
+        autoArabic = ""
+        autoLatin = ""
     }
 
     val colors = zikraOnGreenFieldColors()
@@ -65,7 +74,16 @@ fun EditFrameScreen(
         Spacer(Modifier.height(20.dp))
         OutlinedTextField(
             value = arabic,
-            onValueChange = { arabic = it },
+            onValueChange = { value ->
+                arabic = value
+                arabicTouched = true
+                val match = DhikrLexicon.fromArabic(value)
+                if (match != null && (!latinTouched || transliteration.isBlank() || transliteration == autoLatin)) {
+                    transliteration = match.latin
+                    autoLatin = match.latin
+                    latinTouched = false
+                }
+            },
             label = { Text(stringResource(R.string.arabic), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
@@ -75,7 +93,16 @@ fun EditFrameScreen(
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = transliteration,
-            onValueChange = { transliteration = it },
+            onValueChange = { value ->
+                transliteration = value
+                latinTouched = true
+                val match = DhikrLexicon.fromLatin(value)
+                if (match != null && (!arabicTouched || arabic.isBlank() || arabic == autoArabic)) {
+                    arabic = match.arabic
+                    autoArabic = match.arabic
+                    arabicTouched = false
+                }
+            },
             label = { Text(stringResource(R.string.transliteration), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
