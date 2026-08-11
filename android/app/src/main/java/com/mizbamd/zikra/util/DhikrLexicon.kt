@@ -1,7 +1,7 @@
 package com.mizbamd.zikra.util
 
 /**
- * Known dhikr/dua pairs so Add/Edit can fill Arabic from transliteration and the reverse.
+ * Known dhikr/dua pairs so Add/Edit can suggest Arabic from transliteration and the reverse.
  * Matching is on a stripped latin key (lowercase, letters only) or on Arabic without tashkeel.
  */
 data class DhikrPair(
@@ -53,7 +53,11 @@ object DhikrLexicon {
         "astagfirullah" to 3,
         "astaghfirulla" to 3,
         "astagfirulla" to 3,
+        "lailahailla" to 4,
         "lailahaillallah" to 4,
+        "lailahaillaallah" to 4,
+        "lailahaillalah" to 4,
+        "lailahaillallahu" to 4,
         "lailahaillallahmuhammadurrasulullah" to 5,
         "subhanallahiwaibihamdihi" to 6,
         "subhanallahiwabihamdihi" to 6,
@@ -69,6 +73,7 @@ object DhikrLexicon {
         "hasbiallah" to 13,
         "rabbighfirli" to 14,
         "yalatif" to 15,
+        "lailahaillaanta" to 16,
         "lailahaillaantasubhanakainnikuntuminazzalimin" to 16,
         "lailahaillaanthasubhanakainnikuntumminazzalimeen" to 16,
         "lailahaillaantasubhanaka" to 16,
@@ -94,20 +99,25 @@ object DhikrLexicon {
         }
     }
 
-    fun fromLatin(raw: String): DhikrPair? {
+    fun searchLatin(raw: String, limit: Int = 8): List<DhikrPair> {
         val key = normalizeLatin(raw)
-        if (key.length < 4) return null
-        byLatin[key]?.let { return it }
-        val uniquePrefix = byLatin.entries.filter { it.key.startsWith(key) && it.key.length >= key.length }
-            .map { it.value }
-            .distinctBy { it.arabic }
-        return uniquePrefix.singleOrNull()
+        if (key.length < 2) return emptyList()
+        return rankMatches(key, byLatin, limit)
     }
+
+    fun searchArabic(raw: String, limit: Int = 8): List<DhikrPair> {
+        val key = normalizeArabic(raw)
+        if (key.length < 2) return emptyList()
+        return rankMatches(key, byArabic, limit)
+    }
+
+    fun fromLatin(raw: String): DhikrPair? = uniqueStrongMatch(searchLatin(raw))
 
     fun fromArabic(raw: String): DhikrPair? {
         val key = normalizeArabic(raw)
         if (key.isBlank()) return null
-        return byArabic[key]
+        byArabic[key]?.let { return it }
+        return uniqueStrongMatch(searchArabic(raw))
     }
 
     fun normalizeLatin(raw: String): String =
@@ -119,5 +129,53 @@ object DhikrLexicon {
             .filter { it in 'a'..'z' }
 
     fun normalizeArabic(raw: String): String =
-        raw.filter { it !in tashkeel && !it.isWhitespace() }
+        buildString(raw.length) {
+            raw.forEach { ch ->
+                when {
+                    ch in tashkeel || ch.isWhitespace() || ch == '\u0640' -> Unit
+                    ch == 'أ' || ch == 'إ' || ch == 'آ' || ch == 'ٱ' -> append('ا')
+                    else -> append(ch)
+                }
+            }
+        }
+
+    private fun uniqueStrongMatch(matches: List<DhikrPair>): DhikrPair? =
+        matches.singleOrNull()
+
+    private fun rankMatches(
+        key: String,
+        index: Map<String, DhikrPair>,
+        limit: Int,
+    ): List<DhikrPair> {
+        data class Hit(val pair: DhikrPair, val score: Int, val matchedKeyLen: Int)
+
+        val best = LinkedHashMap<String, Hit>()
+        val allowContains = key.length >= 4
+        index.forEach { (mapKey, pair) ->
+            val score = when {
+                mapKey == key -> 0
+                mapKey.startsWith(key) -> 1
+                key.startsWith(mapKey) && mapKey.length >= 4 -> 2
+                allowContains && mapKey.contains(key) -> 3
+                else -> return@forEach
+            }
+            val id = normalizeArabic(pair.arabic)
+            val hit = Hit(pair, score, mapKey.length)
+            val prev = best[id]
+            if (prev == null ||
+                hit.score < prev.score ||
+                (hit.score == prev.score && hit.matchedKeyLen < prev.matchedKeyLen)
+            ) {
+                best[id] = hit
+            }
+        }
+        return best.values
+            .sortedWith(
+                compareBy<Hit> { it.score }
+                    .thenBy { normalizeLatin(it.pair.latin).length }
+                    .thenBy { it.pair.latin },
+            )
+            .take(limit)
+            .map { it.pair }
+    }
 }

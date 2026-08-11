@@ -1,13 +1,19 @@
 package com.mizbamd.zikra.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Icon
@@ -21,8 +27,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
@@ -30,10 +41,14 @@ import com.mizbamd.zikra.data.local.FrameEntity
 import com.mizbamd.zikra.ui.components.GoldButton
 import com.mizbamd.zikra.ui.components.QuietTextButton
 import com.mizbamd.zikra.ui.theme.Cream
+import com.mizbamd.zikra.ui.theme.ForestDark
+import com.mizbamd.zikra.ui.theme.Gold
+import com.mizbamd.zikra.ui.theme.GoldLight
 import com.mizbamd.zikra.ui.theme.OnGreen
 import com.mizbamd.zikra.ui.theme.OnGreenTextStyle
 import com.mizbamd.zikra.ui.theme.zikraOnGreenFieldColors
 import com.mizbamd.zikra.util.DhikrLexicon
+import com.mizbamd.zikra.util.DhikrPair
 
 @Composable
 fun EditFrameScreen(
@@ -45,24 +60,40 @@ fun EditFrameScreen(
     var arabic by remember { mutableStateOf(existing?.arabic.orEmpty()) }
     var transliteration by remember { mutableStateOf(existing?.transliteration.orEmpty()) }
     var target by remember { mutableStateOf(existing?.target?.toString().orEmpty()) }
-    var arabicTouched by remember { mutableStateOf(false) }
-    var latinTouched by remember { mutableStateOf(false) }
-    var autoArabic by remember { mutableStateOf("") }
-    var autoLatin by remember { mutableStateOf("") }
+    var latinSuggesting by remember { mutableStateOf(false) }
+    var arabicSuggesting by remember { mutableStateOf(false) }
 
     LaunchedEffect(existing?.id) {
         arabic = existing?.arabic.orEmpty()
         transliteration = existing?.transliteration.orEmpty()
         target = existing?.target?.toString().orEmpty()
-        arabicTouched = existing != null
-        latinTouched = existing != null
-        autoArabic = ""
-        autoLatin = ""
+        latinSuggesting = false
+        arabicSuggesting = false
+    }
+
+    val latinHits = remember(transliteration, latinSuggesting) {
+        if (latinSuggesting) DhikrLexicon.searchLatin(transliteration) else emptyList()
+    }
+    val arabicHits = remember(arabic, arabicSuggesting) {
+        if (arabicSuggesting) DhikrLexicon.searchArabic(arabic) else emptyList()
+    }
+
+    fun pick(pair: DhikrPair) {
+        arabic = pair.arabic
+        transliteration = pair.latin
+        latinSuggesting = false
+        arabicSuggesting = false
     }
 
     val colors = zikraOnGreenFieldColors()
 
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
+    ) {
         IconButton(onClick = onBack) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back", tint = Cream)
         }
@@ -76,13 +107,8 @@ fun EditFrameScreen(
             value = arabic,
             onValueChange = { value ->
                 arabic = value
-                arabicTouched = true
-                val match = DhikrLexicon.fromArabic(value)
-                if (match != null && (!latinTouched || transliteration.isBlank() || transliteration == autoLatin)) {
-                    transliteration = match.latin
-                    autoLatin = match.latin
-                    latinTouched = false
-                }
+                arabicSuggesting = true
+                latinSuggesting = false
             },
             label = { Text(stringResource(R.string.arabic), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
@@ -90,18 +116,17 @@ fun EditFrameScreen(
             textStyle = OnGreenTextStyle,
             colors = colors,
         )
+        if (arabicHits.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            DhikrSuggestionList(items = arabicHits, onPick = ::pick)
+        }
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = transliteration,
             onValueChange = { value ->
                 transliteration = value
-                latinTouched = true
-                val match = DhikrLexicon.fromLatin(value)
-                if (match != null && (!arabicTouched || arabic.isBlank() || arabic == autoArabic)) {
-                    arabic = match.arabic
-                    autoArabic = match.arabic
-                    arabicTouched = false
-                }
+                latinSuggesting = true
+                arabicSuggesting = false
             },
             label = { Text(stringResource(R.string.transliteration), color = OnGreen) },
             modifier = Modifier.fillMaxWidth(),
@@ -109,6 +134,10 @@ fun EditFrameScreen(
             textStyle = OnGreenTextStyle,
             colors = colors,
         )
+        if (latinHits.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            DhikrSuggestionList(items = latinHits, onPick = ::pick)
+        }
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = target,
@@ -126,6 +155,57 @@ fun EditFrameScreen(
         }, enabled = arabic.isNotBlank() && transliteration.isNotBlank())
         if (onDelete != null) {
             QuietTextButton(stringResource(R.string.delete), onClick = onDelete)
+        }
+    }
+}
+
+@Composable
+private fun DhikrSuggestionList(
+    items: List<DhikrPair>,
+    onPick: (DhikrPair) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 240.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(ForestDark)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        items.forEachIndexed { index, pair ->
+            if (index > 0) {
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Gold.copy(alpha = 0.18f)),
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onPick(pair) }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+            ) {
+                Text(
+                    pair.arabic,
+                    color = Cream,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Start,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    pair.latin,
+                    color = GoldLight,
+                    fontSize = 13.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
         }
     }
 }
