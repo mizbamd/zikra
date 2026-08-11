@@ -164,6 +164,7 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 onYou = { nav.navigate("you") },
                 onSignIn = { nav.navigate("signin") },
                 onClearDone = vm::clearDone,
+                streakDays = state.streakDays,
             )
         }
         composable("home") {
@@ -174,6 +175,7 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                     doneFrameId = state.doneFrameId,
                     canAddFrame = state.canAddFrame,
                     maxFrames = state.maxFrames,
+                    streakDays = state.streakDays,
                     onCount = vm::increment,
                     onFocus = { nav.navigate("focused/$it") },
                     onAdd = {
@@ -198,6 +200,9 @@ fun ZikraNav(vm: ZikraViewModel = koinViewModel()) {
                 authError = state.authError,
                 onHaptics = vm::setHaptics,
                 onVolumeUp = vm::setVolumeUp,
+                onTickSound = vm::setTickSound,
+                onReminderEnabled = vm::setReminderEnabled,
+                onReminderTime = vm::setReminderTime,
                 onResetAt = vm::setResetAt,
                 onLanguage = vm::setLanguage,
                 onLocationEnabled = vm::setLocationEnabled,

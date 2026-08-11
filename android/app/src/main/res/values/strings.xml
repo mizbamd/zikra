@@ -58,4 +58,18 @@
     <string name="server_down">Can’t reach the Zikra server. Check that it is running, or continue as guest.</string>
     <string name="google_missing">Google Sign-In needs a Web client ID. Add google.web.client.id to local.properties.</string>
     <string name="today">Today</string>
+    <string name="tick_sound">Tick sound on count</string>
+    <string name="daily_reminder">Daily reminder</string>
+    <string name="reminder_time">Remind at</string>
+    <string name="reminder_channel_name">Daily reminder</string>
+    <string name="reminder_channel_desc">A quiet once-a-day nudge to remember.</string>
+    <string name="reminder_title">Zikra</string>
+    <string name="reminder_body">A quiet moment to remember.</string>
+    <string name="export_history">Export</string>
+    <string name="history_export_subject">Zikra daily counts</string>
+    <string name="history_empty">No counts yet.</string>
+    <plurals name="streak_days">
+        <item quantity="one">1 day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
 </resources>

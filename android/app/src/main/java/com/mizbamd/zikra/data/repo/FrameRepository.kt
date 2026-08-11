@@ -5,6 +5,7 @@ import com.mizbamd.zikra.data.local.DailyCountEntity
 import com.mizbamd.zikra.data.local.FrameDao
 import com.mizbamd.zikra.data.local.FrameEntity
 import com.mizbamd.zikra.data.local.GUEST_USER_ID
+import com.mizbamd.zikra.data.local.HistoryRetention
 import com.mizbamd.zikra.data.local.ResetAt
 import com.mizbamd.zikra.data.local.Settings
 import com.mizbamd.zikra.data.local.SettingsStore
@@ -234,11 +235,16 @@ class FrameRepository(
         frames.deleteForUser(userId)
     }
 
+    suspend fun pruneOldCounts() {
+        counts.deleteOlderThan(HistoryRetention.cutoffDate())
+    }
+
     suspend fun syncQuietly() {
         runCatching { sync() }
     }
 
     suspend fun sync() {
+        pruneOldCounts()
         val s = settings.settings.first()
         if (!s.isSignedIn) return
         val pull = api.pull(s.token)
@@ -256,6 +262,7 @@ class FrameRepository(
         mergeRemote(s.userId, pushed.frames, pushed.dailyCounts)
         dirtyFrames.forEach { frames.update(it.copy(dirty = false)) }
         dirtyCounts.forEach { counts.upsert(it.copy(dirty = false)) }
+        pruneOldCounts()
     }
 
     suspend fun onSignedIn(userId: String) {

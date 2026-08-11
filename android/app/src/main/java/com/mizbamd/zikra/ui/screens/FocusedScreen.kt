@@ -85,7 +85,7 @@ fun FocusedScreen(
                 Spacer(Modifier.height(36.dp))
                 Box(
                     modifier = Modifier
-                        .size(260.dp)
+                        .size(300.dp)
                         .clip(CircleShape)
                         .background(ForestMid)
                         .clickable(onClick = onCount),
@@ -95,10 +95,10 @@ fun FocusedScreen(
                         Text(
                             frame.todayCount.toString(),
                             color = Gold,
-                            fontSize = 72.sp,
+                            fontSize = 80.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
-                        frame.target?.let { Text("/ $it", color = GoldLight, fontSize = 20.sp) }
+                        frame.target?.let { Text("/ $it", color = GoldLight, fontSize = 22.sp) }
                     }
                 }
                 if (showDone) {
@@ -110,7 +110,12 @@ fun FocusedScreen(
                     "${stringResource(R.string.lifetime)} ${frame.frame.lifetimeCount}",
                     color = Cream.copy(alpha = 0.55f),
                 )
-                CounterActions(onUndo, onReset)
+                CounterActions(
+                    onUndo = onUndo,
+                    onReset = onReset,
+                    undoEnabled = frame.todayCount > 0,
+                    resetEnabled = frame.todayCount > 0,
+                )
             }
         }
     }

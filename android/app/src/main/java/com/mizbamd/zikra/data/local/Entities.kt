@@ -93,6 +93,10 @@ interface DailyCountDao {
 
     @Query("DELETE FROM daily_counts WHERE userId = :userId")
     suspend fun deleteForUser(userId: String)
+
+    /** ISO `yyyy-MM-dd` strings compare lexicographically. See [HistoryRetention]. */
+    @Query("DELETE FROM daily_counts WHERE date < :cutoff")
+    suspend fun deleteOlderThan(cutoff: String)
 }
 
 @Database(

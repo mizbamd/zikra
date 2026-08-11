@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +41,7 @@ import com.mizbamd.zikra.util.DisplayDates
 import com.mizbamd.zikra.util.LocationLabel
 
 @Composable
-fun DateHeader(dates: DisplayDates, modifier: Modifier = Modifier) {
+fun DateHeader(dates: DisplayDates, streakDays: Int = 0, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             dates.gregorian,
@@ -69,6 +70,15 @@ fun DateHeader(dates: DisplayDates, modifier: Modifier = Modifier) {
             color = Cream.copy(alpha = 0.65f),
             fontSize = 12.sp,
         )
+        if (streakDays > 0) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                pluralStringResource(R.plurals.streak_days, streakDays, streakDays),
+                color = Gold,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
     }
 }
 
@@ -91,11 +101,12 @@ fun FrameCard(
     ) {
         Column(
             modifier = Modifier
-                .widthIn(min = 72.dp)
+                .widthIn(min = 88.dp)
+                .heightIn(min = 88.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Gold.copy(alpha = 0.12f))
                 .clickable(onClick = onCount)
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 14.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
@@ -187,12 +198,58 @@ fun QuietTextButton(
 }
 
 @Composable
-fun CounterActions(onUndo: () -> Unit, onReset: () -> Unit) {
+fun CounterActions(
+    onUndo: () -> Unit,
+    onReset: () -> Unit,
+    undoEnabled: Boolean = true,
+    resetEnabled: Boolean = true,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        QuietTextButton(stringResource(R.string.undo), onClick = onUndo)
-        QuietTextButton(stringResource(R.string.reset_today), onClick = onReset)
+        GoldActionButton(
+            text = stringResource(R.string.undo),
+            enabled = undoEnabled,
+            modifier = Modifier.weight(1f),
+            onClick = onUndo,
+        )
+        GoldActionButton(
+            text = stringResource(R.string.reset_today),
+            enabled = resetEnabled,
+            modifier = Modifier.weight(1f),
+            onClick = onReset,
+        )
+    }
+}
+
+@Composable
+private fun GoldActionButton(
+    text: String,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Gold,
+            contentColor = ForestDark,
+            disabledContainerColor = Gold.copy(alpha = 0.28f),
+            disabledContentColor = OnGreen,
+        ),
+    ) {
+        Text(
+            text,
+            color = if (enabled) ForestDark else OnGreen,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            maxLines = 1,
+        )
     }
 }

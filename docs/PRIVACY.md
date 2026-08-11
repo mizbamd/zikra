@@ -47,7 +47,13 @@ If you enable “Use location for Hijri date,” the app may read approximate or
 
 ### Other on-device settings
 
-Haptics, language, “volume up adds one,” and daily reset (midnight or Fajr) are stored on the device and are not required for an account.
+Haptics, language, “volume up adds one,” optional tick sound, daily reset (midnight or Fajr), streak, and optional daily reminder time are stored on the device and are not required for an account.
+
+### Daily reminder (on device only)
+
+If you turn on **Daily reminder**, Zikra schedules a local notification at the time you pick. The schedule lives on the phone (AlarmManager). Reminder times are **not** uploaded to Zikra servers. You can turn this off at any time. Notification permission is requested on Android 13+.
+
+On-device daily count history older than **24 months** is pruned so local storage stays small. Server history for signed-in accounts is not trimmed by this client prune.
 
 ---
 
@@ -66,7 +72,7 @@ JWT session tokens are issued by the API (currently 14 days). Tokens are not a s
 
 - **Contract / requested service:** account, sync, and deletion.
 - **Legitimate interest:** keeping the service secure (password hashing, rejecting invalid sign-in).
-- **Consent:** optional location permission on Android.
+- **Consent:** optional location permission and optional notification permission on Android.
 
 ---
 

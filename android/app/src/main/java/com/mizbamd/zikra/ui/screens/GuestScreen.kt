@@ -53,6 +53,7 @@ fun GuestScreen(
     onYou: () -> Unit,
     onSignIn: () -> Unit,
     onClearDone: () -> Unit,
+    streakDays: Int = 0,
 ) {
     VolumeUpFocusEffect(frameId = frame?.frame?.id, enabled = volumeUpEnabled)
     LaunchedEffect(showDone) {
@@ -73,7 +74,7 @@ fun GuestScreen(
                 Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.sign_in), tint = Cream)
             }
         }
-        DateHeader(dates)
+        DateHeader(dates, streakDays = streakDays)
         Spacer(Modifier.height(24.dp))
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -92,7 +93,7 @@ fun GuestScreen(
                 Spacer(Modifier.height(28.dp))
                 Box(
                     modifier = Modifier
-                        .size(220.dp)
+                        .size(280.dp)
                         .clip(CircleShape)
                         .background(ForestMid)
                         .clickable(onClick = onCount),
@@ -102,11 +103,11 @@ fun GuestScreen(
                         Text(
                             frame.todayCount.toString(),
                             color = Gold,
-                            fontSize = 64.sp,
+                            fontSize = 72.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
                         frame.target?.let {
-                            Text("/ $it", color = GoldLight, fontSize = 18.sp)
+                            Text("/ $it", color = GoldLight, fontSize = 20.sp)
                         }
                     }
                 }
@@ -119,7 +120,12 @@ fun GuestScreen(
                     "${stringResource(R.string.lifetime)} ${frame.frame.lifetimeCount}",
                     color = Cream.copy(alpha = 0.55f),
                 )
-                CounterActions(onUndo, onReset)
+                CounterActions(
+                    onUndo = onUndo,
+                    onReset = onReset,
+                    undoEnabled = frame.todayCount > 0,
+                    resetEnabled = frame.todayCount > 0,
+                )
             }
         }
     }

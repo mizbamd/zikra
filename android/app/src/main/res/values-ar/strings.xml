@@ -58,4 +58,22 @@
     <string name="server_down">تعذر الوصول إلى خادم ذكرى. تأكد أنه يعمل، أو تابع كضيف.</string>
     <string name="google_missing">تسجيل Google يحتاج معرّف عميل ويب. أضفه في local.properties.</string>
     <string name="today">اليوم</string>
+    <string name="tick_sound">صوت عند العد</string>
+    <string name="daily_reminder">تذكير يومي</string>
+    <string name="reminder_time">ذكّر عند</string>
+    <string name="reminder_channel_name">تذكير يومي</string>
+    <string name="reminder_channel_desc">تنبيه هادئ مرة في اليوم للذكر.</string>
+    <string name="reminder_title">ذكرى</string>
+    <string name="reminder_body">لحظة هادئة للذكر.</string>
+    <string name="export_history">تصدير</string>
+    <string name="history_export_subject">عدّادات ذكرى اليومية</string>
+    <string name="history_empty">لا عدّادات بعد.</string>
+    <plurals name="streak_days">
+        <item quantity="zero">%d أيام</item>
+        <item quantity="one">يوم واحد</item>
+        <item quantity="two">يومان</item>
+        <item quantity="few">%d أيام</item>
+        <item quantity="many">%d يوماً</item>
+        <item quantity="other">%d يوم</item>
+    </plurals>
 </resources>
