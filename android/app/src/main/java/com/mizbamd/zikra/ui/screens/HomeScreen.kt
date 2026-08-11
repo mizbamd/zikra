@@ -1,15 +1,11 @@
 package com.mizbamd.zikra.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.FloatingActionButton
@@ -59,35 +55,36 @@ fun HomeScreen(
             }
         },
     ) { padding ->
-        Column(
-            Modifier
+        LazyColumn(
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 12.dp,
+                bottom = 88.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            DateHeader(dates)
-            Spacer(Modifier.height(16.dp))
-            if (doneFrameId != null) {
-                Text(
-                    stringResource(R.string.done_quiet),
-                    color = GoldLight,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
+            item(key = "date-header") {
+                DateHeader(dates)
             }
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 88.dp),
-            ) {
-                items(frames, key = { it.frame.id }) { item ->
-                    FrameCard(
-                        item = item,
-                        onCount = { onCount(item.frame.id) },
-                        onArabic = { onFocus(item.frame.id) },
+            if (doneFrameId != null) {
+                item(key = "done-quiet") {
+                    Text(
+                        stringResource(R.string.done_quiet),
+                        color = GoldLight,
+                        fontSize = 16.sp,
                     )
                 }
+            }
+            items(frames, key = { it.frame.id }) { item ->
+                FrameCard(
+                    item = item,
+                    onCount = { onCount(item.frame.id) },
+                    onArabic = { onFocus(item.frame.id) },
+                )
             }
         }
     }

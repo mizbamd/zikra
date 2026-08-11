@@ -3,13 +3,13 @@ package com.mizbamd.zikra.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mizbamd.zikra.R
@@ -77,38 +78,23 @@ fun FrameCard(
     onArabic: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Row(
         modifier = modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(CardWhite)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            item.frame.arabic,
-            color = Ink,
-            fontSize = 26.sp,
-            fontFamily = FontFamily.Serif,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onArabic)
-                .padding(vertical = 8.dp),
-        )
-        Text(
-            item.frame.transliteration,
-            color = Ink.copy(alpha = 0.55f),
-            fontSize = 13.sp,
-        )
-        Spacer(Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
+                .widthIn(min = 72.dp)
                 .clip(RoundedCornerShape(16.dp))
+                .background(Gold.copy(alpha = 0.12f))
                 .clickable(onClick = onCount)
-                .padding(vertical = 12.dp),
-            contentAlignment = Alignment.Center,
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = buildString {
@@ -116,15 +102,46 @@ fun FrameCard(
                     item.target?.let { append(" / $it") }
                 },
                 color = Gold,
-                fontSize = 32.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+            Text(
+                "${stringResource(R.string.lifetime)} ${item.frame.lifetimeCount}",
+                color = Ink.copy(alpha = 0.45f),
+                fontSize = 10.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
-        Text(
-            "${stringResource(R.string.lifetime)} ${item.frame.lifetimeCount}",
-            color = Ink.copy(alpha = 0.45f),
-            fontSize = 11.sp,
-        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onArabic),
+            horizontalAlignment = Alignment.End,
+        ) {
+            Text(
+                item.frame.arabic,
+                color = Ink,
+                fontSize = 22.sp,
+                lineHeight = 30.sp,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.End,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                item.frame.transliteration,
+                color = Ink.copy(alpha = 0.55f),
+                fontSize = 13.sp,
+                textAlign = TextAlign.End,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+            )
+        }
     }
 }
 
