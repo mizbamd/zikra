@@ -19,7 +19,8 @@
     <string name="back">Back</string>
     <string name="google_sign_in">Continue with Google</string>
     <string name="home">Home</string>
-    <string name="history">History</string>
+    <string name="history">Summary</string>
+    <string name="summary">Summary</string>
     <string name="you">You</string>
     <string name="undo">Undo</string>
     <string name="reset_today">Reset today</string>
@@ -73,6 +74,9 @@
     <string name="export_history">Export</string>
     <string name="history_export_subject">Zikra daily counts</string>
     <string name="history_empty">No counts yet.</string>
+    <string name="summary_empty">Add a dhikr on Home to see it here.</string>
+    <string name="summary_thanks">Jazakum Allahu khayran for using Zikra.</string>
+    <string name="summary_thanks_signoff">— MizbaMd</string>
     <plurals name="streak_days">
         <item quantity="one">1 day</item>
         <item quantity="other">%d days</item>

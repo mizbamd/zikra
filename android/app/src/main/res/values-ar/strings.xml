@@ -19,7 +19,8 @@
     <string name="back">رجوع</string>
     <string name="google_sign_in">المتابعة عبر Google</string>
     <string name="home">الرئيسية</string>
-    <string name="history">السجل</string>
+    <string name="history">الخلاصة</string>
+    <string name="summary">الخلاصة</string>
     <string name="you">أنت</string>
     <string name="undo">تراجع</string>
     <string name="reset_today">إعادة اليوم</string>
@@ -73,6 +74,9 @@
     <string name="export_history">تصدير</string>
     <string name="history_export_subject">عدّادات ذكرى اليومية</string>
     <string name="history_empty">لا عدّادات بعد.</string>
+    <string name="summary_empty">أضف ذكراً من الرئيسية ليظهر هنا.</string>
+    <string name="summary_thanks">جزاكم الله خيراً لاستخدام ذكرى.</string>
+    <string name="summary_thanks_signoff">— MizbaMd</string>
     <plurals name="streak_days">
         <item quantity="zero">%d أيام</item>
         <item quantity="one">يوم واحد</item>

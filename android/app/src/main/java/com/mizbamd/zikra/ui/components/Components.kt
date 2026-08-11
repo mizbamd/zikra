@@ -96,7 +96,7 @@ fun FrameCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 96.dp)
+            .heightIn(min = 104.dp)
             .background(Cream, plaque)
             .border(1.5.dp, Gold, plaque)
             .padding(horizontal = 18.dp, vertical = 16.dp),
