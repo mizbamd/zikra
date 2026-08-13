@@ -14,6 +14,12 @@ Hosted from [PRIVACY.md](PRIVACY.md) via GitHub Pages (`docs/privacy.html`). Pas
 
 Until it is hosted, the console field stays empty and you cannot complete production publish.
 
+## Account deletion URL (Data Safety)
+
+**Deletion request URL:** https://mizbamd.github.io/zikra/delete.html
+
+Paste that in Play Console → App content → Data safety when asked for a link users can use to request that their account and associated data be deleted. The page covers in-app **You → Delete account**, email to mizbauddin.md@gmail.com, and guest (local-only) uninstall.
+
 ---
 
 ## Short description (max 80 characters)
@@ -93,7 +99,7 @@ Google’s “collected” means data **sent off the device**. Guest mode sends 
 | Crash logs / analytics | No in this version | | | | |
 
 **Encryption in transit:** Yes (production API is HTTPS only).  
-**Users can request deletion:** Yes — in-app **You → Delete account**, which calls `DELETE /v1/account`.  
+**Users can request deletion:** Yes — in-app **You → Delete account**, which calls `DELETE /v1/account`, or email via https://mizbamd.github.io/zikra/delete.html.  
 **Account creation:** Optional (guest works).  
 **Data is not sold.** Do not check “data used for advertising” or “shared for advertising.”
 

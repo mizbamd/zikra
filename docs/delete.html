@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delete your account — Zikra</title>
+  <meta name="description" content="How to delete your Zikra account and associated data." />
+  <style>
+    :root {
+      --forest: #16352f;
+      --forest-dark: #0f241f;
+      --forest-mid: #1e463d;
+      --gold: #c9a24a;
+      --gold-light: #e4c878;
+      --cream: #f6f1e6;
+      --ink: #14241f;
+      --muted: #3d534c;
+      --line: rgba(22, 53, 47, 0.14);
+      --card: #fffdf8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 120% 80% at 10% -10%, rgba(201, 162, 74, 0.18), transparent 55%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(30, 70, 61, 0.12), transparent 50%),
+        var(--cream);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+      line-height: 1.65;
+      font-size: 1.05rem;
+    }
+
+    header {
+      background: linear-gradient(165deg, var(--forest-dark), var(--forest) 55%, var(--forest-mid));
+      color: var(--cream);
+      padding: 2.75rem 1.25rem 2.25rem;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    header .wrap,
+    main,
+    footer .wrap {
+      max-width: 42rem;
+      margin: 0 auto;
+    }
+
+    .brand {
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin: 0 0 0.65rem;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.75rem, 4vw, 2.35rem);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .meta {
+      margin: 0;
+      color: rgba(246, 241, 230, 0.82);
+      font-size: 0.95rem;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    .meta a {
+      color: var(--gold-light);
+    }
+
+    main {
+      padding: 2rem 1.25rem 3.5rem;
+    }
+
+    h2 {
+      margin: 2.25rem 0 0.75rem;
+      font-size: 1.35rem;
+      color: var(--forest);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.35rem;
+    }
+
+    p, li { margin: 0.65rem 0; }
+
+    ul { padding-left: 1.25rem; }
+
+    a { color: var(--forest); }
+
+    strong { color: var(--forest-dark); }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.5rem 1.25rem 2rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    footer a { color: var(--forest-mid); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="brand">Zikra · ذكرى</p>
+      <h1>Delete your account</h1>
+      <p class="meta">
+        App: Zikra — Android package <code style="color: var(--gold-light); background: rgba(0,0,0,0.2);">com.mizbamd.zikra</code><br />
+        Operator: Miz Mohammad ·
+        <a href="mailto:mizbauddin.md@gmail.com">mizbauddin.md@gmail.com</a>
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <p>
+      You can delete your Zikra account and the data associated with it. Deletion removes the account, synced dhikr frames, and counts from Zikra’s servers. This cannot be undone.
+    </p>
+
+    <h2>In the app</h2>
+    <p>
+      If you are signed in, open the <strong>You</strong> tab, tap <strong>Delete account</strong>, and confirm.
+    </p>
+    <p>
+      That permanently deletes your account and associated synced data, wipes local app data on that device, and returns you to the welcome screen.
+    </p>
+
+    <h2>By email</h2>
+    <p>
+      Anyone can request deletion by emailing
+      <a href="mailto:mizbauddin.md@gmail.com?subject=Delete%20Zikra%20account">mizbauddin.md@gmail.com</a>
+      from the address on the account (or include that account email in the message) and asking us to delete the account and associated data.
+    </p>
+
+    <h2>Guest mode</h2>
+    <p>
+      Guest data stays on the device only. There is no account to delete. Uninstall the app, or clear app storage, to remove guest data on that device.
+    </p>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <a href="index.html">Zikra site</a>
+      · <a href="privacy.html">Privacy policy</a>
+    </div>
+  </footer>
+</body>
+</html>
