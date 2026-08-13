@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — Zikra</title>
+  <meta name="description" content="Privacy policy for Zikra (ذكرى), the Android tasbih / dhikr counter." />
+  <style>
+    :root {
+      --forest: #16352f;
+      --forest-dark: #0f241f;
+      --forest-mid: #1e463d;
+      --gold: #c9a24a;
+      --gold-light: #e4c878;
+      --cream: #f6f1e6;
+      --ink: #14241f;
+      --muted: #3d534c;
+      --line: rgba(22, 53, 47, 0.14);
+      --card: #fffdf8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 120% 80% at 10% -10%, rgba(201, 162, 74, 0.18), transparent 55%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(30, 70, 61, 0.12), transparent 50%),
+        var(--cream);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+      line-height: 1.65;
+      font-size: 1.05rem;
+    }
+
+    header {
+      background: linear-gradient(165deg, var(--forest-dark), var(--forest) 55%, var(--forest-mid));
+      color: var(--cream);
+      padding: 2.75rem 1.25rem 2.25rem;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    header .wrap,
+    main,
+    footer .wrap {
+      max-width: 42rem;
+      margin: 0 auto;
+    }
+
+    .brand {
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin: 0 0 0.65rem;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.75rem, 4vw, 2.35rem);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .meta {
+      margin: 0;
+      color: rgba(246, 241, 230, 0.82);
+      font-size: 0.95rem;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    .meta a {
+      color: var(--gold-light);
+    }
+
+    main {
+      padding: 2rem 1.25rem 3.5rem;
+    }
+
+    h2 {
+      margin: 2.25rem 0 0.75rem;
+      font-size: 1.35rem;
+      color: var(--forest);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.35rem;
+    }
+
+    h3 {
+      margin: 1.5rem 0 0.5rem;
+      font-size: 1.1rem;
+      color: var(--forest-mid);
+    }
+
+    p, li { margin: 0.65rem 0; }
+
+    ul, ol { padding-left: 1.25rem; }
+
+    a { color: var(--forest); }
+
+    strong { color: var(--forest-dark); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.25rem;
+      font-size: 0.95rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 0.7rem 0.8rem;
+      border-bottom: 1px solid var(--line);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    th {
+      background: rgba(22, 53, 47, 0.06);
+      color: var(--forest);
+      font-weight: 600;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.88em;
+      background: rgba(22, 53, 47, 0.07);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.5rem 1.25rem 2rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    footer a { color: var(--forest-mid); }
+
+    @media (max-width: 520px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr { border-bottom: 1px solid var(--line); }
+      td {
+        border: none;
+        padding: 0.35rem 0.8rem;
+      }
+      td:first-child {
+        padding-top: 0.85rem;
+        font-weight: 600;
+        color: var(--forest);
+      }
+      td:last-child { padding-bottom: 0.85rem; }
+      td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 0.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="brand">Zikra · ذكرى</p>
+      <h1>Privacy Policy</h1>
+      <p class="meta">
+        Effective date: 11 August 2026<br />
+        App: Zikra — Android package <code style="color: var(--gold-light); background: rgba(0,0,0,0.2);">com.mizbamd.zikra</code><br />
+        Operator: Miz Mohammad ·
+        <a href="mailto:mizbauddin.md@gmail.com">mizbauddin.md@gmail.com</a>
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <p>
+      This policy describes how Zikra handles information when you use the Android app and the optional Zikra sync API.
+    </p>
+
+    <h2>What Zikra is</h2>
+    <p>
+      Zikra is a quiet tasbih / dhikr counter. You can use it as a <strong>guest</strong> with no account, or <strong>sign in</strong> with an email one-time code so frames and counts can sync across devices.
+    </p>
+    <p>Google Sign-In is not offered in this version.</p>
+
+    <h2>Information we handle</h2>
+
+    <h3>Guest (no account)</h3>
+    <p>
+      Guest mode works <strong>offline</strong>. Dhikr counts and settings stay on your device (local database and preferences). They are <strong>not</strong> sent to Zikra servers. There is no account to delete; uninstalling the app (or clearing app storage) removes guest data on that device.
+    </p>
+
+    <h3>Signed-in accounts</h3>
+    <p>If you create an account, we store:</p>
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="Data">Email address</td>
+          <td data-label="Why">Account identifier and to send a one-time sign-in code</td>
+        </tr>
+        <tr>
+          <td data-label="Data">One-time sign-in codes</td>
+          <td data-label="Why">Delivered by email; stored only as an HMAC hash, expire in 10 minutes</td>
+        </tr>
+        <tr>
+          <td data-label="Data">Password (bcrypt hash only, legacy)</td>
+          <td data-label="Why">Older accounts created before email OTP. We never store plaintext passwords. New accounts have no password</td>
+        </tr>
+        <tr>
+          <td data-label="Data">Dhikr frames</td>
+          <td data-label="Why">Arabic text, transliteration, optional daily target, sort order, timestamps</td>
+        </tr>
+        <tr>
+          <td data-label="Data">Counts</td>
+          <td data-label="Why">Daily counts and lifetime totals per frame</td>
+        </tr>
+        <tr>
+          <td data-label="Data">Account timestamps</td>
+          <td data-label="Why">Created / updated times</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      We do <strong>not</strong> sell your data. We do <strong>not</strong> use it for advertising. We do <strong>not</strong> share it with data brokers, advertisers, or analytics companies.
+    </p>
+    <p>
+      There is no third-party advertising SDK, no crash-reporting product, and no analytics product in this version.
+    </p>
+
+    <h3>Location (on device only)</h3>
+    <p>
+      If you enable “Use location for Hijri date,” the app may read approximate or precise location <strong>on your device</strong> to estimate local sunset so the Hijri date can roll at sunset (Umm al-Qura). Coordinates are stored only in on-device preferences. <strong>Location is not uploaded to Zikra servers.</strong> You can turn this off; the app then uses a sample Makkah location for the calendar only.
+    </p>
+
+    <h3>Other on-device settings</h3>
+    <p>
+      Haptics, language, “volume up adds one,” optional tick sound, daily reset (midnight or Fajr), streak, and optional daily reminder time are stored on the device and are not required for an account.
+    </p>
+
+    <h3>Daily reminder (on device only)</h3>
+    <p>
+      If you turn on <strong>Daily reminder</strong>, Zikra schedules a local notification at the time you pick. The schedule lives on the phone (AlarmManager). Reminder times are <strong>not</strong> uploaded to Zikra servers. You can turn this off at any time. Notification permission is requested on Android 13+.
+    </p>
+    <p>
+      On-device daily count history older than <strong>24 months</strong> is pruned so local storage stays small. Server history for signed-in accounts is not trimmed by this client prune.
+    </p>
+
+    <h2>How we use information</h2>
+    <ul>
+      <li>Provide the app and sync your frames and counts when you are signed in.</li>
+      <li>Authenticate you (email + one-time code; legacy email + password still accepted on the API).</li>
+      <li>Estimate Hijri sunset on the device when location is enabled.</li>
+      <li>Comply with Play Store account-deletion requirements and applicable data-protection requests.</li>
+    </ul>
+    <p>JWT session tokens are issued by the API (currently 14 days). Tokens are not a separate marketing identifier.</p>
+
+    <h2>Legal bases (where GDPR / similar laws apply)</h2>
+    <ul>
+      <li><strong>Contract / requested service:</strong> account, sync, and deletion.</li>
+      <li><strong>Legitimate interest:</strong> keeping the service secure (hashed OTP codes, rate limits, rejecting invalid sign-in).</li>
+      <li><strong>Consent:</strong> optional location permission and optional notification permission on Android.</li>
+    </ul>
+
+    <h2>Sharing</h2>
+    <p>We do not sell personal information.</p>
+    <p>
+      We may share data only if required by law, or with a hosting provider that stores the database and API on our behalf (for example a VPS or Fly.io Postgres). To send sign-in codes we use <strong>Resend</strong> as an email processor (your email address and the message content). Those processors are used only to run Zikra, not to build profiles or ads.
+    </p>
+
+    <h2>Retention and deletion</h2>
+    <ul>
+      <li><strong>Guest data:</strong> remains on the device until you clear storage or uninstall.</li>
+      <li><strong>Account data:</strong> kept while the account exists.</li>
+      <li><strong>Delete account:</strong> in the app go to <strong>You → Delete account</strong> and confirm. That calls <code>DELETE /v1/account</code> (same as <code>POST /v1/account/delete</code>) and removes the user, frames, and counts from the server, then wipes local Room and DataStore on that device and returns you to the welcome screen.</li>
+    </ul>
+    <p>
+      After deletion, a leftover JWT cannot load an account that no longer exists. Rotating <code>JWT_SECRET</code> on the server invalidates all outstanding tokens.
+    </p>
+    <p>
+      If you cannot use the app, email
+      <a href="mailto:mizbauddin.md@gmail.com">mizbauddin.md@gmail.com</a>
+      from the address on the account and ask us to delete it.
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      Zikra is not directed at children under 13. We do not knowingly collect personal information from children under 13. If you believe we have, contact us and we will delete it.
+    </p>
+
+    <h2>Security</h2>
+    <p>
+      Sign-in codes are hashed (HMAC-SHA256) and expire after 10 minutes. Legacy passwords are hashed with bcrypt. The production API should be served only over HTTPS. Access to the database is limited to the API. No method of transmission or storage is 100% secure.
+    </p>
+
+    <h2>International processing</h2>
+    <p>
+      If you sign in, account data is stored wherever the Zikra API and Postgres database are hosted (see the deployment in use at the time). By creating an account you understand that data may be processed outside your country, with safeguards appropriate to that host.
+    </p>
+
+    <h2>Changes</h2>
+    <p>
+      We may update this policy. The effective date at the top will change. Material changes will be reflected in the hosted copy of this document.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Miz Mohammad<br />
+      <a href="mailto:mizbauddin.md@gmail.com">mizbauddin.md@gmail.com</a>
+    </p>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <a href="index.html">Zikra site</a>
+      · Privacy policy for Play Store and store listing
+    </div>
+  </footer>
+</body>
+</html>

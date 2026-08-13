@@ -5,7 +5,9 @@ Default listing language: English.
 
 ## Privacy policy URL
 
-**Do not invent a live URL.** Host [PRIVACY.md](PRIVACY.md) on GitHub Pages or a simple HTTPS site, then paste that URL in:
+**Privacy policy URL:** https://mizbamd.github.io/zikra/privacy.html
+
+Hosted from [PRIVACY.md](PRIVACY.md) via GitHub Pages (`docs/privacy.html`). Paste that URL in:
 
 - Play Console → App content → Privacy policy
 - Store listing → Privacy policy
@@ -153,7 +155,7 @@ Notes:
 
 ### Before you create the production release
 
-- [ ] Host [PRIVACY.md](PRIVACY.md) on HTTPS; paste URL in Play Console
+- [x] Host privacy on HTTPS (https://mizbamd.github.io/zikra/privacy.html); paste URL in Play Console
 - [ ] Deploy API with HTTPS ([DEPLOY.md](DEPLOY.md)); set release `API_BASE_URL` to that URL (default `https://zikra-api.fly.dev`)
 - [ ] Confirm `GET https://…/health` returns ok
 - [ ] Confirm signed-in **Delete account** removes the row in Postgres and returns to welcome

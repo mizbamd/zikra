@@ -7,7 +7,7 @@
 
 This policy describes how Zikra handles information when you use the Android app and the optional Zikra sync API.
 
-**Host this file on a public HTTPS URL** (GitHub Pages or a simple site) and paste that URL into Play Console and the store listing. Do not invent a live privacy URL until the page is actually published.
+**Public HTTPS URL (Play Console / store listing):** https://mizbamd.github.io/zikra/privacy.html
 
 ---
 
