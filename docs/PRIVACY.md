@@ -7,7 +7,8 @@
 
 This policy describes how Zikra handles information when you use the Android app and the optional Zikra sync API.
 
-**Public HTTPS URL (Play Console / store listing):** https://mizbamd.github.io/zikra/privacy.html
+**Public HTTPS URL (Play Console / store listing):** https://mizbamd.github.io/zikra/privacy.html  
+**Account deletion URL (Play Console Data Safety):** https://mizbamd.github.io/zikra/delete.html
 
 ---
 
@@ -86,6 +87,8 @@ We may share data only if required by law, or with a hosting provider that store
 ---
 
 ## Retention and deletion
+
+Public deletion instructions: https://mizbamd.github.io/zikra/delete.html
 
 - **Guest data:** remains on the device until you clear storage or uninstall.
 - **Account data:** kept while the account exists.
