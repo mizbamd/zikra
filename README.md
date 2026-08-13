@@ -6,7 +6,7 @@ Guest can count without an account. Signed-in users get independent **frames** (
 
 **GitHub:** private repo [mizbamd/zikra](https://github.com/mizbamd/zikra). Code baseline **v0.1.0**. First sideload release **v1.0.0-pilot**. Every change goes through a pull request into `main` — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-CI: `.github/workflows/ci.yml` runs `server/gradlew test` on pull requests. It does **not** deploy or upload a Play AAB. Production API: [docs/DEPLOY.md](docs/DEPLOY.md). Play listing: [docs/PLAY_STORE.md](docs/PLAY_STORE.md). Privacy policy (host before publish): [docs/PRIVACY.md](docs/PRIVACY.md).
+CI: `.github/workflows/ci.yml` runs `server/gradlew test` on pull requests. It does **not** deploy or upload a Play AAB. Production API: [docs/DEPLOY.md](docs/DEPLOY.md). Play listing: [docs/PLAY_STORE.md](docs/PLAY_STORE.md). Privacy policy: [docs/PRIVACY.md](docs/PRIVACY.md) · https://mizbamd.github.io/zikra/privacy.html
 
 ## Product (v1)
 

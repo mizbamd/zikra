@@ -24,6 +24,7 @@ local.properties
 # Env / secrets
 .env
 .env.local
+docs/testaccounts.md
 *.jks
 *.keystore
 google-services.json
